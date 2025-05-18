@@ -1,0 +1,15 @@
+{
+  "name": "Kirtan Connect",
+  "short_name": "Kirtan",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "description": "Kirtan Connect Mobile Web App",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

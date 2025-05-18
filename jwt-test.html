@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Auth Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .result {
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            background-color: #f5f5f5;
+        }
+        button {
+            padding: 8px 16px;
+            margin-right: 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+        #token-display {
+            word-break: break-all;
+            font-size: 12px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>KirtanConnect JWT Auth Test</h1>
+    
+    <div>
+        <h2>Register User</h2>
+        <form id="registerForm">
+            <div>
+                <label for="username">Username (Email):</label>
+                <input type="email" id="username" name="username" required>
+            </div>
+            <div>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div>
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <button type="submit">Register</button>
+        </form>
+    </div>
+    
+    <div>
+        <h2>Login</h2>
+        <form id="loginForm">
+            <div>
+                <label for="loginUsername">Username:</label>
+                <input type="text" id="loginUsername" name="username" required>
+            </div>
+            <div>
+                <label for="loginPassword">Password:</label>
+                <input type="password" id="loginPassword" name="password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+    
+    <div>
+        <h2>JWT Token</h2>
+        <div id="token-display" class="result">No token</div>
+        <button id="clearToken">Clear Token</button>
+    </div>
+    
+    <div>
+        <h2>Test Authenticated Endpoints</h2>
+        <button id="getUserData">Get User Data</button>
+        <button id="testLogout">Logout</button>
+    </div>
+    
+    <div>
+        <h2>Results</h2>
+        <div id="result" class="result">Results will appear here</div>
+    </div>
+    
+    <script>
+        const SERVER_URL = 'http://localhost:5000';
+        const resultDiv = document.getElementById('result');
+        const tokenDisplay = document.getElementById('token-display');
+        
+        // Token management
+        function getToken() {
+            return localStorage.getItem('jwt_token');
+        }
+        
+        function setToken(token) {
+            localStorage.setItem('jwt_token', token);
+            updateTokenDisplay();
+        }
+        
+        function clearToken() {
+            localStorage.removeItem('jwt_token');
+            updateTokenDisplay();
+        }
+        
+        function updateTokenDisplay() {
+            const token = getToken();
+            if (token) {
+                tokenDisplay.textContent = token;
+            } else {
+                tokenDisplay.textContent = 'No token';
+            }
+        }
+        
+        // Update token display on page load
+        updateTokenDisplay();
+        
+        // Clear token button
+        document.getElementById('clearToken').addEventListener('click', clearToken);
+        
+        // Register form
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                resultDiv.textContent = 'Registering user...';
+                
+                const formData = new FormData(e.target);
+                const userData = {
+                    username: formData.get('username'),
+                    password: formData.get('password'),
+                    name: formData.get('name')
+                };
+                
+                const response = await fetch(`${SERVER_URL}/api/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(userData),
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    if (data.token) {
+                        setToken(data.token);
+                    }
+                    resultDiv.innerHTML = `<span class="success">Registration Successful!</span>
+User data: ${JSON.stringify(data.user, null, 2)}`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">Registration Failed!</span>
+Error: ${data.message}`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">Registration Error!</span>
+Error: ${error.message}`;
+                console.error(error);
+            }
+        });
+        
+        // Login form
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                resultDiv.textContent = 'Logging in...';
+                
+                const formData = new FormData(e.target);
+                const userData = {
+                    username: formData.get('username'),
+                    password: formData.get('password')
+                };
+                
+                const response = await fetch(`${SERVER_URL}/api/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(userData),
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    if (data.token) {
+                        setToken(data.token);
+                    }
+                    resultDiv.innerHTML = `<span class="success">Login Successful!</span>
+User data: ${JSON.stringify(data.user, null, 2)}`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">Login Failed!</span>
+Error: ${data.message}`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">Login Error!</span>
+Error: ${error.message}`;
+                console.error(error);
+            }
+        });
+        
+        // Get user data
+        document.getElementById('getUserData').addEventListener('click', async () => {
+            try {
+                resultDiv.textContent = 'Fetching user data...';
+                
+                const token = getToken();
+                if (!token) {
+                    resultDiv.innerHTML = `<span class="error">No token found!</span>
+Please login first.`;
+                    return;
+                }
+                
+                const response = await fetch(`${SERVER_URL}/api/user`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<span class="success">User Data Retrieved!</span>
+User data: ${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">Failed to get user data!</span>
+Error: ${data.message}`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">Error fetching user data!</span>
+Error: ${error.message}`;
+                console.error(error);
+            }
+        });
+        
+        // Logout
+        document.getElementById('testLogout').addEventListener('click', async () => {
+            try {
+                resultDiv.textContent = 'Logging out...';
+                
+                const token = getToken();
+                if (!token) {
+                    resultDiv.innerHTML = `<span class="error">No token found!</span>
+You're not logged in.`;
+                    return;
+                }
+                
+                const response = await fetch(`${SERVER_URL}/api/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    clearToken();
+                    resultDiv.innerHTML = `<span class="success">Logout Successful!</span>
+Message: ${data.message}`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">Logout Failed!</span>
+Error: ${data.message}`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">Logout Error!</span>
+Error: ${error.message}`;
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html> 
