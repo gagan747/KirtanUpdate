@@ -332,6 +332,7 @@ export default function HomePage() {
                   ${notificationStatus === "denied" ? "opacity-50 cursor-not-allowed" : "hover:bg-primary/10"}
                   sm:h-10 sm:w-10 h-8 w-8
                 `}
+                style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
                 aria-label={notificationStatus === "granted" ? "Disable notifications" : "Enable notifications"}
               >
                 {isNotificationToggleLoading ? (
