@@ -4,18 +4,22 @@ import {
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
-import { insertUserSchema, User as SelectUser, InsertUser } from "@shared/schema";
+import {
+  insertUserSchema,
+  User as SelectUser,
+  InsertUser,
+} from "@shared/schema";
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { clearToken } from "../lib/api";
 import { useToast } from "@/hooks/use-toast";
 
 type UserWithToken = {
-  user: Omit<SelectUser, 'password'>;
+  user: Omit<SelectUser, "password">;
   token: string;
 };
 
 type AuthContextType = {
-  user: Omit<SelectUser, 'password'> | null;
+  user: Omit<SelectUser, "password"> | null;
   isLoading: boolean;
   error: Error | null;
   loginMutation: UseMutationResult<UserWithToken, Error, LoginData>;
@@ -32,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data: user,
     error,
     isLoading,
-  } = useQuery<Omit<SelectUser, 'password'> | undefined, Error>({
+  } = useQuery<Omit<SelectUser, "password"> | undefined, Error>({
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
@@ -42,7 +46,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const response = await apiRequest("POST", "/api/login", credentials);
         return response;
-        
       } catch (error) {
         throw new Error("Invalid username or password");
       }
@@ -132,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
- 
+
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }

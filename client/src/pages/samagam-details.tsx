@@ -14,7 +14,18 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Calendar, Clock, MapPin, User, Phone, Pencil, Trash2, Loader2, Share2, ArrowLeft } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  User,
+  Phone,
+  Pencil,
+  Trash2,
+  Loader2,
+  Share2,
+  ArrowLeft,
+} from "lucide-react";
 import { format } from "date-fns";
 import { useLocation } from "wouter";
 import Layout from "@/components/layout";
@@ -30,14 +41,18 @@ export default function SamagamDetails() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
-  
+
   // Fix the issue with invalid samagam ID during navigation
   const pathSegments = location.split("/");
   const idFromPath = pathSegments.length > 1 ? pathSegments.pop() || "" : "";
   const id = parseInt(idFromPath);
-  
+
   // Only fetch if we have a valid ID
-  const { data: samagam, isLoading, refetch } = useQuery<Samagam>({
+  const {
+    data: samagam,
+    isLoading,
+    refetch,
+  } = useQuery<Samagam>({
     queryKey: [`/api/samagams/${id}`],
     enabled: !isNaN(id) && id > 0,
   });
@@ -60,12 +75,12 @@ export default function SamagamDetails() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: samagam?.title || 'Kirtan Update',
+          title: samagam?.title || "Kirtan Update",
           text: `Join us for ${samagam?.title} on ${format(new Date(samagam?.date || new Date()), "MMMM d, yyyy")}`,
           url: window.location.href,
         });
       } catch (error) {
-        console.error('Error sharing:', error);
+        console.error("Error sharing:", error);
         setIsShareMenuOpen(true);
       }
     } else {
@@ -107,16 +122,16 @@ export default function SamagamDetails() {
 
   return (
     <Layout>
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
         className="max-w-4xl mx-auto page-transition"
       >
         <div className="mb-6">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className="mb-4 hover:bg-background"
             onClick={() => setLocation("/")}
           >
@@ -126,7 +141,7 @@ export default function SamagamDetails() {
         </div>
 
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-3 mb-6 sm:mb-8">
-          <motion.h1 
+          <motion.h1
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.1 }}
@@ -135,23 +150,23 @@ export default function SamagamDetails() {
             {samagam.title}
             <span className="absolute -bottom-2 left-0 w-20 h-1 bg-primary rounded-full hidden sm:block"></span>
           </motion.h1>
-          
+
           <div className="flex gap-2 justify-center sm:justify-end">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="text-xs sm:text-sm h-8 sm:h-10"
               onClick={handleShare}
             >
               <Share2 className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Share
             </Button>
-            
+
             {isShareMenuOpen && (
               <div className="absolute mt-10 right-0 bg-card border shadow-lg rounded-md p-2 z-50">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="w-full justify-start text-sm"
                   onClick={copyToClipboard}
                 >
@@ -159,12 +174,16 @@ export default function SamagamDetails() {
                 </Button>
               </div>
             )}
-            
+
             {user?.isAdmin && (
               <>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="text-xs sm:text-sm h-8 sm:h-10">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs sm:text-sm h-8 sm:h-10"
+                    >
                       <Pencil className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       Edit
                     </Button>
@@ -175,12 +194,13 @@ export default function SamagamDetails() {
                       onSuccess={(updatedSamagam) => {
                         queryClient.setQueryData(
                           [`/api/samagams/${id}`],
-                          updatedSamagam
+                          updatedSamagam,
                         );
                         refetch();
-                        toast(
-                          { title: "Success", description: "Samagam updated successfully" },
-                        );
+                        toast({
+                          title: "Success",
+                          description: "Samagam updated successfully",
+                        });
                       }}
                     />
                   </DialogContent>
@@ -188,21 +208,30 @@ export default function SamagamDetails() {
 
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="sm" className="text-xs sm:text-sm h-8 sm:h-10">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="text-xs sm:text-sm h-8 sm:h-10"
+                    >
                       <Trash2 className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       Delete
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent className="max-w-[350px] sm:max-w-[450px]">
                     <AlertDialogHeader>
-                      <AlertDialogTitle className="text-base sm:text-lg">Delete Samagam</AlertDialogTitle>
+                      <AlertDialogTitle className="text-base sm:text-lg">
+                        Delete Samagam
+                      </AlertDialogTitle>
                       <AlertDialogDescription className="text-xs sm:text-sm">
-                        Are you sure you want to delete this samagam? This action cannot be undone.
+                        Are you sure you want to delete this samagam? This
+                        action cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="mt-4 flex gap-2 sm:gap-3">
-                      <AlertDialogCancel className="text-xs sm:text-sm h-8 sm:h-9">Cancel</AlertDialogCancel>
-                      <AlertDialogAction 
+                      <AlertDialogCancel className="text-xs sm:text-sm h-8 sm:h-9">
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction
                         className="text-xs sm:text-sm h-8 sm:h-9 bg-destructive hover:bg-destructive/90"
                         onClick={() => deleteMutation.mutate()}
                       >
@@ -250,7 +279,7 @@ export default function SamagamDetails() {
                 )}
 
                 <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 w-full mt-4 bg-card rounded-xl p-6 shadow-sm border">
-                  <motion.div 
+                  <motion.div
                     className="flex items-center"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -260,14 +289,16 @@ export default function SamagamDetails() {
                       <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                     </div>
                     <div>
-                      <div className="text-sm sm:text-base font-medium">Date</div>
+                      <div className="text-sm sm:text-base font-medium">
+                        Date
+                      </div>
                       <div className="text-xs sm:text-sm text-muted-foreground">
                         {format(new Date(samagam.date), "EEEE, MMMM d, yyyy")}
                       </div>
                     </div>
                   </motion.div>
 
-                  <motion.div 
+                  <motion.div
                     className="flex items-center"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -277,14 +308,16 @@ export default function SamagamDetails() {
                       <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                     </div>
                     <div>
-                      <div className="text-sm sm:text-base font-medium">Time</div>
+                      <div className="text-sm sm:text-base font-medium">
+                        Time
+                      </div>
                       <div className="text-xs sm:text-sm text-muted-foreground">
                         {samagam.time}
                       </div>
                     </div>
                   </motion.div>
 
-                  <motion.div 
+                  <motion.div
                     className="flex items-center"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -294,9 +327,11 @@ export default function SamagamDetails() {
                       <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                     </div>
                     <div>
-                      <div className="text-sm sm:text-base font-medium">Location</div>
+                      <div className="text-sm sm:text-base font-medium">
+                        Location
+                      </div>
                       <div className="text-xs sm:text-sm text-muted-foreground">
-                        <a 
+                        <a
                           href={`https://maps.google.com/?q=${encodeURIComponent(samagam.location)}`}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -308,7 +343,7 @@ export default function SamagamDetails() {
                     </div>
                   </motion.div>
 
-                  <motion.div 
+                  <motion.div
                     className="flex items-center"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -318,14 +353,16 @@ export default function SamagamDetails() {
                       <User className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                     </div>
                     <div>
-                      <div className="text-sm sm:text-base font-medium">Organizer</div>
+                      <div className="text-sm sm:text-base font-medium">
+                        Organizer
+                      </div>
                       <div className="text-xs sm:text-sm text-muted-foreground">
                         {samagam.organizer}
                       </div>
                     </div>
                   </motion.div>
 
-                  <motion.div 
+                  <motion.div
                     className="flex items-center sm:col-span-2"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -335,19 +372,18 @@ export default function SamagamDetails() {
                       <Phone className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                     </div>
                     <div>
-                      <div className="text-sm sm:text-base font-medium">Contact</div>
+                      <div className="text-sm sm:text-base font-medium">
+                        Contact
+                      </div>
                       <div className="text-xs sm:text-sm text-muted-foreground">
                         {samagam.contactInfo}
                       </div>
                     </div>
                   </motion.div>
                 </div>
-                
+
                 <div className="w-full flex justify-center mt-6">
-                  <Button
-                    className="rounded-full px-8"
-                    onClick={handleShare}
-                  >
+                  <Button className="rounded-full px-8" onClick={handleShare}>
                     <Share2 className="mr-2 h-4 w-4" />
                     Share This Samagam
                   </Button>

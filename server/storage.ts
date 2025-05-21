@@ -1,7 +1,23 @@
-import { users, type User, type InsertUser, type Samagam, type InsertSamagam, samagams, 
-  type RecordedSamagam, type InsertRecordedSamagam, recordedSamagams,
-  type Location, type InsertLocation, locations,
-  type FcmToken, type InsertFcmToken, fcmTokens } from "@shared/schema";
+import {
+  users,
+  type User,
+  type InsertUser,
+  type Samagam,
+  type InsertSamagam,
+  samagams,
+  type RecordedSamagam,
+  type InsertRecordedSamagam,
+  recordedSamagams,
+  type Location,
+  type InsertLocation,
+  locations,
+  type FcmToken,
+  type InsertFcmToken,
+  fcmTokens,
+  type LiveBroadcast,
+  type InsertLiveBroadcast,
+  liveBroadcasts,
+} from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
 import { count } from "drizzle-orm";
@@ -10,12 +26,21 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(insertUser: InsertUser): Promise<User>;
-  
+
   // FCM Token operations
   saveFcmToken(token: string): Promise<FcmToken>;
   getFcmTokens(): Promise<FcmToken[]>;
   deleteFcmToken(token: string): Promise<boolean>;
   checkFcmTokenExists(token: string): Promise<boolean>;
+
+  // Live Broadcast operations
+  createLiveBroadcast(
+    socketId: string,
+    roomName: string,
+  ): Promise<LiveBroadcast>;
+  getLiveBroadcasts(): Promise<LiveBroadcast[]>;
+  deleteLiveBroadcastBySocketId(socketId: string): Promise<boolean>;
+  hasActiveBroadcast(): Promise<boolean>;
   // Other methods...
 }
 
@@ -31,7 +56,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username));
     return user;
   }
 
@@ -42,7 +70,10 @@ export class DatabaseStorage implements IStorage {
 
   // Samagam operations
   async getSamagam(id: number): Promise<Samagam | undefined> {
-    const [samagam] = await db.select().from(samagams).where(eq(samagams.id, id));
+    const [samagam] = await db
+      .select()
+      .from(samagams)
+      .where(eq(samagams.id, id));
     return samagam;
   }
 
@@ -50,21 +81,34 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(samagams);
   }
 
-  async getPaginatedSamagams(limit: number, offset: number): Promise<{samagams: Samagam[], total: number}> {
-    const results = await db.select().from(samagams).limit(limit).offset(offset);
+  async getPaginatedSamagams(
+    limit: number,
+    offset: number,
+  ): Promise<{ samagams: Samagam[]; total: number }> {
+    const results = await db
+      .select()
+      .from(samagams)
+      .limit(limit)
+      .offset(offset);
     const [countResult] = await db.select({ count: count() }).from(samagams);
     return {
       samagams: results,
-      total: Number(countResult.count)
+      total: Number(countResult.count),
     };
   }
 
   async createSamagam(insertSamagam: InsertSamagam): Promise<Samagam> {
-    const [samagam] = await db.insert(samagams).values(insertSamagam).returning();
+    const [samagam] = await db
+      .insert(samagams)
+      .values(insertSamagam)
+      .returning();
     return samagam;
   }
 
-  async updateSamagam(id: number, updateSamagam: InsertSamagam): Promise<Samagam | undefined> {
+  async updateSamagam(
+    id: number,
+    updateSamagam: InsertSamagam,
+  ): Promise<Samagam | undefined> {
     const [samagam] = await db
       .update(samagams)
       .set(updateSamagam)
@@ -85,22 +129,37 @@ export class DatabaseStorage implements IStorage {
   async getAllRecordedSamagams(): Promise<RecordedSamagam[]> {
     return await db.select().from(recordedSamagams);
   }
-  
-  async getPaginatedRecordedSamagams(limit: number, offset: number): Promise<{recordedSamagams: RecordedSamagam[], total: number}> {
-    const results = await db.select().from(recordedSamagams).limit(limit).offset(offset);
-    const [countResult] = await db.select({ count: count() }).from(recordedSamagams);
+
+  async getPaginatedRecordedSamagams(
+    limit: number,
+    offset: number,
+  ): Promise<{ recordedSamagams: RecordedSamagam[]; total: number }> {
+    const results = await db
+      .select()
+      .from(recordedSamagams)
+      .limit(limit)
+      .offset(offset);
+    const [countResult] = await db
+      .select({ count: count() })
+      .from(recordedSamagams);
     return {
       recordedSamagams: results,
-      total: Number(countResult.count)
+      total: Number(countResult.count),
     };
   }
 
   async getRecordedSamagam(id: number): Promise<RecordedSamagam | undefined> {
-    const [recordedSamagam] = await db.select().from(recordedSamagams).where(eq(recordedSamagams.id, id));
+    const [recordedSamagam] = await db
+      .select()
+      .from(recordedSamagams)
+      .where(eq(recordedSamagams.id, id));
     return recordedSamagam;
   }
 
-  async createRecordedSamagam(insertRecordedSamagam: InsertRecordedSamagam, userId: number): Promise<RecordedSamagam> {
+  async createRecordedSamagam(
+    insertRecordedSamagam: InsertRecordedSamagam,
+    userId: number,
+  ): Promise<RecordedSamagam> {
     const [recordedSamagam] = await db
       .insert(recordedSamagams)
       .values({
@@ -114,7 +173,10 @@ export class DatabaseStorage implements IStorage {
     return recordedSamagam;
   }
 
-  async updateRecordedSamagam(id: number, updateRecordedSamagam: InsertRecordedSamagam): Promise<RecordedSamagam | undefined> {
+  async updateRecordedSamagam(
+    id: number,
+    updateRecordedSamagam: InsertRecordedSamagam,
+  ): Promise<RecordedSamagam | undefined> {
     const [recordedSamagam] = await db
       .update(recordedSamagams)
       .set({
@@ -141,7 +203,10 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(locations);
   }
 
-  async createLocation(insertLocation: InsertLocation, userId: number): Promise<Location> {
+  async createLocation(
+    insertLocation: InsertLocation,
+    userId: number,
+  ): Promise<Location> {
     const [location] = await db
       .insert(locations)
       .values({ ...insertLocation, addedBy: userId })
@@ -149,7 +214,10 @@ export class DatabaseStorage implements IStorage {
     return location;
   }
 
-  async updateLocation(id: number, updateLocation: InsertLocation): Promise<Location | undefined> {
+  async updateLocation(
+    id: number,
+    updateLocation: InsertLocation,
+  ): Promise<Location | undefined> {
     const [location] = await db
       .update(locations)
       .set(updateLocation)
@@ -173,17 +241,17 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(fcmTokens)
       .where(eq(fcmTokens.token, token));
-    
+
     if (existingTokens.length) {
       return existingTokens[0];
     } else {
       // Insert new token
       const [newToken] = await db
         .insert(fcmTokens)
-        .values({ 
-          token, 
+        .values({
+          token,
           createdAt: new Date(),
-          lastUsed: new Date()
+          lastUsed: new Date(),
         })
         .returning();
       return newToken;
@@ -208,6 +276,44 @@ export class DatabaseStorage implements IStorage {
       .from(fcmTokens)
       .where(eq(fcmTokens.token, token));
     return tokens.length > 0;
+  }
+
+  // Live Broadcast operations
+  async createLiveBroadcast(
+    socketId: string,
+    roomName: string,
+  ): Promise<LiveBroadcast> {
+    // First delete any existing broadcasts to ensure only one active broadcast
+    await db.delete(liveBroadcasts);
+
+    // Create new broadcast entry
+    const [liveBroadcast] = await db
+      .insert(liveBroadcasts)
+      .values({
+        socketId,
+        roomName,
+      })
+      .returning();
+
+    return liveBroadcast;
+  }
+
+  async getLiveBroadcasts(): Promise<LiveBroadcast[]> {
+    return await db.select().from(liveBroadcasts);
+  }
+
+  async deleteLiveBroadcastBySocketId(socketId: string): Promise<boolean> {
+    const [deleted] = await db
+      .delete(liveBroadcasts)
+      .where(eq(liveBroadcasts.socketId, socketId))
+      .returning();
+
+    return !!deleted;
+  }
+
+  async hasActiveBroadcast(): Promise<boolean> {
+    const broadcasts = await this.getLiveBroadcasts();
+    return broadcasts.length > 0;
   }
 }
 

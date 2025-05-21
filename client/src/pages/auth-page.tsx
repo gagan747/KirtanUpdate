@@ -27,7 +27,7 @@ export default function AuthPage() {
       insertUserSchema.pick({
         username: true,
         password: true,
-      })
+      }),
     ),
     defaultValues: {
       username: "",
@@ -53,20 +53,26 @@ export default function AuthPage() {
       <div className="flex-1 flex items-center justify-center p-3 sm:p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="pb-4 sm:pb-6">
-            <CardTitle className="text-xl sm:text-2xl text-center">Welcome to Kirtan Update</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl text-center">
+              Welcome to Kirtan Update
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login">
               <TabsList className="grid w-full grid-cols-2 mb-4 sm:mb-6">
-                <TabsTrigger value="login" className="text-sm sm:text-base">Login</TabsTrigger>
-                <TabsTrigger value="register" className="text-sm sm:text-base">Register</TabsTrigger>
+                <TabsTrigger value="login" className="text-sm sm:text-base">
+                  Login
+                </TabsTrigger>
+                <TabsTrigger value="register" className="text-sm sm:text-base">
+                  Register
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="login">
                 <Form {...loginForm}>
                   <form
                     onSubmit={loginForm.handleSubmit((data) =>
-                      loginMutation.mutate(data)
+                      loginMutation.mutate(data),
                     )}
                     className="space-y-3 sm:space-y-4"
                   >
@@ -76,7 +82,11 @@ export default function AuthPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Input placeholder="Username" {...field} className="h-9 sm:h-10 text-sm sm:text-base" />
+                            <Input
+                              placeholder="Username"
+                              {...field}
+                              className="h-9 sm:h-10 text-sm sm:text-base"
+                            />
                           </FormControl>
                           <FormMessage className="text-xs sm:text-sm" />
                         </FormItem>
@@ -133,7 +143,7 @@ export default function AuthPage() {
                 <Form {...registerForm}>
                   <form
                     onSubmit={registerForm.handleSubmit((data) =>
-                      registerMutation.mutate(data)
+                      registerMutation.mutate(data),
                     )}
                     className="space-y-3 sm:space-y-4"
                   >
@@ -143,7 +153,11 @@ export default function AuthPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Input placeholder="Name" {...field} className="h-9 sm:h-10 text-sm sm:text-base" />
+                            <Input
+                              placeholder="Name"
+                              {...field}
+                              className="h-9 sm:h-10 text-sm sm:text-base"
+                            />
                           </FormControl>
                           <FormMessage className="text-xs sm:text-sm" />
                         </FormItem>
@@ -156,7 +170,11 @@ export default function AuthPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Input placeholder="Username" {...field} className="h-9 sm:h-10 text-sm sm:text-base" />
+                            <Input
+                              placeholder="Username"
+                              {...field}
+                              className="h-9 sm:h-10 text-sm sm:text-base"
+                            />
                           </FormControl>
                           <FormMessage className="text-xs sm:text-sm" />
                         </FormItem>
@@ -171,7 +189,9 @@ export default function AuthPage() {
                           <FormControl>
                             <div className="relative">
                               <Input
-                                type={showRegisterPassword ? "text" : "password"}
+                                type={
+                                  showRegisterPassword ? "text" : "password"
+                                }
                                 placeholder="Password"
                                 {...field}
                                 className="h-9 sm:h-10 text-sm sm:text-base"

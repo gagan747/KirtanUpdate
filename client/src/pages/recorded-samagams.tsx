@@ -1,12 +1,27 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { RecordedSamagam, InsertRecordedSamagam } from "@shared/schema";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Loader2, Plus, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import Layout from "@/components/layout";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,12 +51,12 @@ function YouTubeEmbed({ url }: { url: string }) {
       // Embed URLs
       /(?:youtube\.com\/embed\/)([^"&?\/\s]{11})(?:[&?].*)?$/i,
       // Direct video ID (11 characters)
-      /^([a-zA-Z0-9_-]{11})$/i
+      /^([a-zA-Z0-9_-]{11})$/i,
     ];
-    
+
     // Clean the URL first (trim whitespace)
     const cleanUrl = url.trim();
-    
+
     // Try each pattern
     for (const regex of regexPatterns) {
       const match = cleanUrl.match(regex);
@@ -49,22 +64,25 @@ function YouTubeEmbed({ url }: { url: string }) {
         return match[1];
       }
     }
-    
+
     // If no pattern matched, try a more generic approach for YouTube URLs
     try {
       const urlObj = new URL(cleanUrl);
-      if (urlObj.hostname.includes('youtube.com') && urlObj.searchParams.has('v')) {
-        return urlObj.searchParams.get('v');
+      if (
+        urlObj.hostname.includes("youtube.com") &&
+        urlObj.searchParams.has("v")
+      ) {
+        return urlObj.searchParams.get("v");
       }
     } catch (e) {
       // Not a valid URL, ignore
     }
-    
+
     return null;
   };
 
   const videoId = getYouTubeVideoId(url);
-  
+
   if (!videoId) {
     return (
       <div className="aspect-video w-full rounded-lg bg-muted flex items-center justify-center flex-col p-4">
@@ -73,7 +91,7 @@ function YouTubeEmbed({ url }: { url: string }) {
       </div>
     );
   }
-  
+
   // Use iframe directly for embedded playback
   return (
     <div className="aspect-video w-full rounded-lg overflow-hidden shadow-md">
@@ -104,45 +122,58 @@ export default function RecordedSamagamsPage() {
   const { toast } = useToast();
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
-  const [selectedSamagam, setSelectedSamagam] = useState<RecordedSamagam | null>(null);
+  const [selectedSamagam, setSelectedSamagam] =
+    useState<RecordedSamagam | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [samagamToDelete, setSamagamToDelete] = useState<RecordedSamagam | null>(null);
+  const [samagamToDelete, setSamagamToDelete] =
+    useState<RecordedSamagam | null>(null);
   const [hoveredCardId, setHoveredCardId] = useState<number | null>(null);
-  
+
   const [page, setPage] = useState(1);
-  const [allRecordedSamagams, setAllRecordedSamagams] = useState<RecordedSamagam[]>([]);
+  const [allRecordedSamagams, setAllRecordedSamagams] = useState<
+    RecordedSamagam[]
+  >([]);
   const [hasMore, setHasMore] = useState(true);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useCallback((node: HTMLDivElement | null) => {
-    if (isLoadingMore) return;
-    
-    if (observerRef.current) {
-      observerRef.current.disconnect();
-    }
-    
-    observerRef.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && hasMore) {
-        setPage((prevPage) => prevPage + 1);
+  const loadMoreRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (isLoadingMore) return;
+
+      if (observerRef.current) {
+        observerRef.current.disconnect();
       }
-    });
-    
-    if (node) {
-      observerRef.current.observe(node);
-    }
-  }, [isLoadingMore, hasMore]);
+
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPage((prevPage) => prevPage + 1);
+        }
+      });
+
+      if (node) {
+        observerRef.current.observe(node);
+      }
+    },
+    [isLoadingMore, hasMore],
+  );
 
   // Fetch recorded samagams with pagination
-  const fetchRecordedSamagams = async (pageNum: number): Promise<RecordedSamagamsResponse> => {
-    return await apiRequest("GET", `/api/recorded-samagams?page=${pageNum}&limit=12`);
+  const fetchRecordedSamagams = async (
+    pageNum: number,
+  ): Promise<RecordedSamagamsResponse> => {
+    return await apiRequest(
+      "GET",
+      `/api/recorded-samagams?page=${pageNum}&limit=12`,
+    );
   };
 
-  const { isLoading: isQueryLoading, refetch } = useQuery<RecordedSamagamsResponse>({
-    queryKey: ["/api/recorded-samagams", page],
-    queryFn: () => fetchRecordedSamagams(page),
-  });
-  
+  const { isLoading: isQueryLoading, refetch } =
+    useQuery<RecordedSamagamsResponse>({
+      queryKey: ["/api/recorded-samagams", page],
+      queryFn: () => fetchRecordedSamagams(page),
+    });
+
   const fetchData = async () => {
     try {
       const data = await fetchRecordedSamagams(page);
@@ -164,7 +195,7 @@ export default function RecordedSamagamsPage() {
     if (isQueryLoading && page === 1) {
       setIsInitialLoading(true);
     }
-    
+
     if (!isQueryLoading) {
       fetchData();
     }
@@ -178,8 +209,15 @@ export default function RecordedSamagamsPage() {
   }, [page]);
 
   const updateMutation = useMutation({
-    mutationFn: async (data: { id: number; samagam: InsertRecordedSamagam }) => {
-      return apiRequest("PATCH", `/api/recorded-samagams/${data.id}`, data.samagam);
+    mutationFn: async (data: {
+      id: number;
+      samagam: InsertRecordedSamagam;
+    }) => {
+      return apiRequest(
+        "PATCH",
+        `/api/recorded-samagams/${data.id}`,
+        data.samagam,
+      );
     },
     onSuccess: () => {
       toast({ title: "Success", description: "Recorded samagam updated." });
@@ -193,7 +231,11 @@ export default function RecordedSamagamsPage() {
       setTimeout(() => fetchData(), 100);
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -213,7 +255,11 @@ export default function RecordedSamagamsPage() {
       setTimeout(() => fetchData(), 100);
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -258,7 +304,11 @@ export default function RecordedSamagamsPage() {
             <span className="absolute -bottom-2 left-0 w-20 h-1 bg-primary rounded-full"></span>
           </h2>
           {user?.isAdmin && (
-            <Button size="sm" className="text-xs sm:text-sm h-8 sm:h-10 px-3 sm:px-4" onClick={() => setIsAddFormOpen(true)}>
+            <Button
+              size="sm"
+              className="text-xs sm:text-sm h-8 sm:h-10 px-3 sm:px-4"
+              onClick={() => setIsAddFormOpen(true)}
+            >
               <Plus className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Add Recording
             </Button>
@@ -310,11 +360,21 @@ export default function RecordedSamagamsPage() {
                     </CardContent>
                     {user?.isAdmin && (
                       <CardFooter className="flex justify-end space-x-2 pt-2 sm:pt-3 flex-shrink-0">
-                        <Button variant="outline" size="icon" onClick={() => handleEdit(samagam)} className="h-7 w-7 sm:h-8 sm:w-8 rounded-full">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleEdit(samagam)}
+                          className="h-7 w-7 sm:h-8 sm:w-8 rounded-full"
+                        >
                           <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           <span className="sr-only">Edit</span>
                         </Button>
-                        <Button variant="destructive" size="icon" onClick={() => handleDeleteConfirmation(samagam)} className="h-7 w-7 sm:h-8 sm:w-8 rounded-full">
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => handleDeleteConfirmation(samagam)}
+                          className="h-7 w-7 sm:h-8 sm:w-8 rounded-full"
+                        >
                           <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           <span className="sr-only">Delete</span>
                         </Button>
@@ -324,12 +384,9 @@ export default function RecordedSamagamsPage() {
                 </motion.div>
               ))}
             </div>
-            
+
             {hasMore && (
-              <div 
-                ref={loadMoreRef} 
-                className="flex justify-center mt-8"
-              >
+              <div ref={loadMoreRef} className="flex justify-center mt-8">
                 {isLoadingMore && (
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 )}
@@ -361,24 +418,36 @@ export default function RecordedSamagamsPage() {
               </DialogDescription>
             </DialogHeader>
             {selectedSamagam && (
-              <RecordedSamagamForm samagamToEdit={selectedSamagam} onSubmit={handleUpdate} />
+              <RecordedSamagamForm
+                samagamToEdit={selectedSamagam}
+                onSubmit={handleUpdate}
+              />
             )}
           </DialogContent>
         </Dialog>
 
         {/* Delete Confirmation Dialog */}
-        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the recorded kirtan.
+                This action cannot be undone. This will permanently delete the
+                recorded kirtan.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleteMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : null}
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>

@@ -1,4 +1,13 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, unique } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  serial,
+  integer,
+  boolean,
+  timestamp,
+  json,
+  unique,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -47,6 +56,14 @@ export const fcmTokens = pgTable("fcm_tokens", {
   lastUsed: timestamp("last_used").defaultNow().notNull(),
 });
 
+// Live Broadcast table
+export const liveBroadcasts = pgTable("live_broadcasts", {
+  id: integer("id").primaryKey(),
+  socketId: text("socket_id").notNull(),
+  roomName: text("room_name").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -54,32 +71,42 @@ export const insertUserSchema = createInsertSchema(users).pick({
   name: true,
 });
 
-export const insertSamagamSchema = createInsertSchema(samagams).pick({
-  title: true,
-  description: true,
-  date: true,
-  time: true,
-  location: true,
-  organizer: true,
-  contactInfo: true,
-  imageUrl: true,
-}).extend({
-  date: z.coerce.date(), // Coerce date to handle string inputs
-});
+export const insertSamagamSchema = createInsertSchema(samagams)
+  .pick({
+    title: true,
+    description: true,
+    date: true,
+    time: true,
+    location: true,
+    organizer: true,
+    contactInfo: true,
+    imageUrl: true,
+  })
+  .extend({
+    date: z.coerce.date(), // Coerce date to handle string inputs
+  });
 
-export const insertRecordedSamagamSchema = createInsertSchema(recordedSamagams, {
-  title: (fieldSchema) => fieldSchema.min(1, { message: "Title cannot be empty" }),
-  description: (fieldSchema) => fieldSchema.min(1, { message: "Description cannot be empty" }),
-  youtubeUrl: (fieldSchema) => fieldSchema.min(1, { message: "YouTube URL cannot be empty" }),
-  // date is handled by extend below
-}).pick({
-  title: true,
-  description: true,
-  youtubeUrl: true,
-  date: true, // Ensure date is picked before extending
-}).extend({
-  date: z.coerce.date(), // Coerce date after picking and potential customization
-});
+export const insertRecordedSamagamSchema = createInsertSchema(
+  recordedSamagams,
+  {
+    title: (fieldSchema) =>
+      fieldSchema.min(1, { message: "Title cannot be empty" }),
+    description: (fieldSchema) =>
+      fieldSchema.min(1, { message: "Description cannot be empty" }),
+    youtubeUrl: (fieldSchema) =>
+      fieldSchema.min(1, { message: "YouTube URL cannot be empty" }),
+    // date is handled by extend below
+  },
+)
+  .pick({
+    title: true,
+    description: true,
+    youtubeUrl: true,
+    date: true, // Ensure date is picked before extending
+  })
+  .extend({
+    date: z.coerce.date(), // Coerce date after picking and potential customization
+  });
 
 export const insertLocationSchema = createInsertSchema(locations).pick({
   name: true,
@@ -103,3 +130,5 @@ export type InsertLocation = z.infer<typeof insertLocationSchema>;
 export type Location = typeof locations.$inferSelect;
 export type InsertFcmToken = z.infer<typeof insertFcmTokenSchema>;
 export type FcmToken = typeof fcmTokens.$inferSelect;
+export type LiveBroadcast = typeof liveBroadcasts.$inferSelect;
+export type InsertLiveBroadcast = typeof liveBroadcasts.$inferInsert;

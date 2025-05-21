@@ -9,7 +9,9 @@ import SamagamDetails from "@/pages/samagam-details";
 import RecordedSamagamsPage from "@/pages/recorded-samagams";
 import LocationsPage from "@/pages/locations";
 import LangarSewaPage from "@/pages/langar-sewa";
+import BroadcastPage from "@/pages/broadcast";
 import { AuthProvider } from "@/hooks/use-auth";
+import { SocketProvider } from "@/hooks/use-socket";
 import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
@@ -21,6 +23,7 @@ function Router() {
       <Route path="/recorded-samagams" component={RecordedSamagamsPage} />
       <Route path="/locations" component={LocationsPage} />
       <Route path="/langar-sewa" component={LangarSewaPage} />
+      <Route path="/broadcast" component={BroadcastPage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
@@ -31,8 +34,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router />
-        <Toaster />
+        <SocketProvider>
+          <Router />
+          <Toaster />
+        </SocketProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

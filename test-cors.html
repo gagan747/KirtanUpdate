@@ -1,94 +1,94 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CORS Test</title>
     <style>
-        body {
-            font-family: sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .result {
-            padding: 10px;
-            border: 1px solid #ccc;
-            margin-top: 10px;
-            white-space: pre-wrap;
-        }
-        button {
-            padding: 8px 16px;
-            margin-right: 10px;
-            cursor: pointer;
-        }
+      body {
+        font-family: sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .result {
+        padding: 10px;
+        border: 1px solid #ccc;
+        margin-top: 10px;
+        white-space: pre-wrap;
+      }
+      button {
+        padding: 8px 16px;
+        margin-right: 10px;
+        cursor: pointer;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h1>CORS Test for KirtanConnect</h1>
-    
+
     <div>
-        <h2>Test Endpoints</h2>
-        <button onclick="testEndpoint('/api/test')">Test API</button>
-        <button onclick="testRegister()">Test Register</button>
+      <h2>Test Endpoints</h2>
+      <button onclick="testEndpoint('/api/test')">Test API</button>
+      <button onclick="testRegister()">Test Register</button>
     </div>
-    
+
     <div>
-        <h2>Result</h2>
-        <div id="result" class="result">Click a button to test an endpoint</div>
+      <h2>Result</h2>
+      <div id="result" class="result">Click a button to test an endpoint</div>
     </div>
-    
+
     <script>
-        const SERVER_URL = 'http://localhost:5000';
-        const resultDiv = document.getElementById('result');
-        
-        async function testEndpoint(endpoint) {
-            try {
-                resultDiv.textContent = 'Testing...';
-                
-                const response = await fetch(`${SERVER_URL}${endpoint}`, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
-                    },
-                    credentials: 'include'
-                });
-                
-                const data = await response.json();
-                resultDiv.textContent = `Success!\nStatus: ${response.status}\nData: ${JSON.stringify(data, null, 2)}`;
-            } catch (error) {
-                resultDiv.textContent = `Error!\n${error.message}`;
-                console.error(error);
-            }
+      const SERVER_URL = "http://localhost:5000";
+      const resultDiv = document.getElementById("result");
+
+      async function testEndpoint(endpoint) {
+        try {
+          resultDiv.textContent = "Testing...";
+
+          const response = await fetch(`${SERVER_URL}${endpoint}`, {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+            },
+            credentials: "include",
+          });
+
+          const data = await response.json();
+          resultDiv.textContent = `Success!\nStatus: ${response.status}\nData: ${JSON.stringify(data, null, 2)}`;
+        } catch (error) {
+          resultDiv.textContent = `Error!\n${error.message}`;
+          console.error(error);
         }
-        
-        async function testRegister() {
-            try {
-                resultDiv.textContent = 'Testing register...';
-                
-                const userData = {
-                    username: `test-${Date.now()}@example.com`,
-                    password: 'password123',
-                    name: 'Test User'
-                };
-                
-                const response = await fetch(`${SERVER_URL}/api/register`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(userData),
-                    credentials: 'include'
-                });
-                
-                const data = await response.json();
-                resultDiv.textContent = `Register result:\nStatus: ${response.status}\nData: ${JSON.stringify(data, null, 2)}`;
-            } catch (error) {
-                resultDiv.textContent = `Error with register!\n${error.message}`;
-                console.error(error);
-            }
+      }
+
+      async function testRegister() {
+        try {
+          resultDiv.textContent = "Testing register...";
+
+          const userData = {
+            username: `test-${Date.now()}@example.com`,
+            password: "password123",
+            name: "Test User",
+          };
+
+          const response = await fetch(`${SERVER_URL}/api/register`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify(userData),
+            credentials: "include",
+          });
+
+          const data = await response.json();
+          resultDiv.textContent = `Register result:\nStatus: ${response.status}\nData: ${JSON.stringify(data, null, 2)}`;
+        } catch (error) {
+          resultDiv.textContent = `Error with register!\n${error.message}`;
+          console.error(error);
         }
+      }
     </script>
-</body>
-</html> 
+  </body>
+</html>

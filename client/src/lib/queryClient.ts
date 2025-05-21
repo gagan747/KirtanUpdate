@@ -9,26 +9,27 @@ export async function apiRequest(
   data?: unknown | undefined,
 ): Promise<any> {
   try {
-    const response = method.toLowerCase() === 'get' 
-      ? await api.get(url)
-      : method.toLowerCase() === 'post'
-      ? await api.post(url, data)
-      : method.toLowerCase() === 'put'
-      ? await api.put(url, data)
-      : method.toLowerCase() === 'patch'
-      ? await api.patch(url, data)
-      : method.toLowerCase() === 'delete'
-      ? await api.delete(url)
-      : await api.request({
-          method,
-          url,
-          data,
-        });
-    
+    const response =
+      method.toLowerCase() === "get"
+        ? await api.get(url)
+        : method.toLowerCase() === "post"
+          ? await api.post(url, data)
+          : method.toLowerCase() === "put"
+            ? await api.put(url, data)
+            : method.toLowerCase() === "patch"
+              ? await api.patch(url, data)
+              : method.toLowerCase() === "delete"
+                ? await api.delete(url)
+                : await api.request({
+                    method,
+                    url,
+                    data,
+                  });
+
     return response.data;
   } catch (error: any) {
     console.error("API Request Error:", error);
-    
+
     // Only show toast for non-404 errors
     if (error.response?.status !== 404) {
       toast({
@@ -37,8 +38,10 @@ export async function apiRequest(
         variant: "destructive",
       });
     }
-    
-    throw new Error(error?.response?.data?.message || error?.message || 'Unknown error');
+
+    throw new Error(
+      error?.response?.data?.message || error?.message || "Unknown error",
+    );
   }
 }
 
@@ -52,10 +55,13 @@ export const getQueryFn: <T>(options: {
       const response = await api.get(queryKey[0] as string);
       return response.data;
     } catch (error: any) {
-      if (unauthorizedBehavior === "returnNull" && error.response?.status === 401) {
+      if (
+        unauthorizedBehavior === "returnNull" &&
+        error.response?.status === 401
+      ) {
         return null;
       }
-      
+
       // Don't show toast for 404 errors
       if (error.response?.status !== 404) {
         toast({
@@ -64,8 +70,10 @@ export const getQueryFn: <T>(options: {
           variant: "destructive",
         });
       }
-      
-      throw new Error(error.response?.data?.message || error.message || 'Unknown error');
+
+      throw new Error(
+        error.response?.data?.message || error.message || "Unknown error",
+      );
     }
   };
 

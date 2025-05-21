@@ -2,7 +2,16 @@ import { useQuery } from "@tanstack/react-query";
 import { Samagam } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Calendar, Clock, MapPin, Loader2, Music2, Bell, BellOff } from "lucide-react";
+import {
+  Plus,
+  Calendar,
+  Clock,
+  MapPin,
+  Loader2,
+  Music2,
+  Bell,
+  BellOff,
+} from "lucide-react";
 import { format } from "date-fns";
 import { Link, useLocation } from "wouter";
 import Layout from "@/components/layout";
@@ -11,15 +20,20 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import SamagamForm from "@/components/samagam-form";
 import { motion } from "framer-motion";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { deleteFcmToken, requestNotificationPermission, getFcmTokenFromStorage } from "@/lib/firebase";
+import {
+  deleteFcmToken,
+  requestNotificationPermission,
+  getFcmTokenFromStorage,
+} from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import Spinner from "@/components/ui/spinner";
+import { LiveBroadcastIndicator } from "@/components/live-broadcast-indicator";
 
 function SamagamCard({ samagam }: { samagam: Samagam }) {
   const { user } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -33,12 +47,13 @@ function SamagamCard({ samagam }: { samagam: Samagam }) {
         <Card className="samagam-card h-full flex flex-col">
           <div className="relative h-auto md:h-[220px] w-full overflow-hidden flex-shrink-0">
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-            <img 
-              src={samagam.imageUrl || "/images/default-samagam.jpg"} 
-              alt={samagam.title} 
-              className={`samagam-image ${isHovered ? 'scale-105' : ''}`}
+            <img
+              src={samagam.imageUrl || "/images/default-samagam.jpg"}
+              alt={samagam.title}
+              className={`samagam-image ${isHovered ? "scale-105" : ""}`}
               onError={(e) => {
-                (e.target as HTMLImageElement).src = "/images/default-samagam.jpg";
+                (e.target as HTMLImageElement).src =
+                  "/images/default-samagam.jpg";
               }}
             />
             <div className="absolute top-2 right-2 z-10">
@@ -77,10 +92,18 @@ function SamagamCard({ samagam }: { samagam: Samagam }) {
                 </a>
               </div>
             </div>
-            <div className={`absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-card to-transparent ${isHovered ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}></div>
+            <div
+              className={`absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-card to-transparent ${isHovered ? "opacity-0" : "opacity-100"} transition-opacity duration-300`}
+            ></div>
           </CardContent>
-          <div className={`flex justify-center pb-4 mt-2 ${isHovered ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}>
-            <Button variant="secondary" size="sm" className="text-xs rounded-full">
+          <div
+            className={`flex justify-center pb-4 mt-2 ${isHovered ? "opacity-100" : "opacity-0"} transition-opacity duration-300`}
+          >
+            <Button
+              variant="secondary"
+              size="sm"
+              className="text-xs rounded-full"
+            >
               View Details
             </Button>
           </div>
@@ -98,7 +121,8 @@ function EmptyState() {
       </div>
       <h3 className="text-xl font-semibold mb-2">No Upcoming Samagams</h3>
       <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-6">
-        There are currently no upcoming Kirtan Samagams scheduled. Check back later or contact the organizers.
+        There are currently no upcoming Kirtan Samagams scheduled. Check back
+        later or contact the organizers.
       </p>
     </div>
   );
@@ -125,23 +149,26 @@ export default function HomePage() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useCallback((node: HTMLDivElement | null) => {
-    if (isLoadingMore) return;
-    
-    if (observerRef.current) {
-      observerRef.current.disconnect();
-    }
-    
-    observerRef.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && hasMore) {
-        setPage((prevPage) => prevPage + 1);
+  const loadMoreRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (isLoadingMore) return;
+
+      if (observerRef.current) {
+        observerRef.current.disconnect();
       }
-    });
-    
-    if (node) {
-      observerRef.current.observe(node);
-    }
-  }, [isLoadingMore, hasMore]);
+
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPage((prevPage) => prevPage + 1);
+        }
+      });
+
+      if (node) {
+        observerRef.current.observe(node);
+      }
+    },
+    [isLoadingMore, hasMore],
+  );
 
   // Fetch samagams with pagination
   const fetchSamagams = async (pageNum: number): Promise<SamagamsResponse> => {
@@ -171,7 +198,7 @@ export default function HomePage() {
   // Regular data loading effect
   useEffect(() => {
     if (isQueryLoading) return;
-    
+
     const fetchData = async () => {
       try {
         const data = await fetchSamagams(page);
@@ -188,7 +215,7 @@ export default function HomePage() {
         setIsLoadingMore(false);
       }
     };
-    
+
     fetchData();
   }, [page, isQueryLoading]);
 
@@ -201,10 +228,14 @@ export default function HomePage() {
 
   // Handle notification subscription and token
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
-  const [isSubscriptionLoading, setIsSubscriptionLoading] = useState<boolean>(false);
+  const [isSubscriptionLoading, setIsSubscriptionLoading] =
+    useState<boolean>(false);
 
-  const [notificationStatus, setNotificationStatus] = useState<"pending" | "granted" | "denied">("pending");
-  const [isNotificationToggleLoading, setIsNotificationToggleLoading] = useState(false);
+  const [notificationStatus, setNotificationStatus] = useState<
+    "pending" | "granted" | "denied"
+  >("pending");
+  const [isNotificationToggleLoading, setIsNotificationToggleLoading] =
+    useState(false);
 
   useEffect(() => {
     const checkNotificationStatus = async () => {
@@ -223,7 +254,10 @@ export default function HomePage() {
         try {
           const storedToken = getFcmTokenFromStorage();
           if (storedToken) {
-            const { exists } = await apiRequest('GET', `/api/fcm-tokens/check/${storedToken}`);
+            const { exists } = await apiRequest(
+              "GET",
+              `/api/fcm-tokens/check/${storedToken}`,
+            );
             setNotificationStatus(exists ? "granted" : "pending");
           } else {
             setNotificationStatus("pending");
@@ -244,7 +278,7 @@ export default function HomePage() {
   const handleRequestNotifications = async () => {
     try {
       const token = await requestNotificationPermission();
-      
+
       if (token) {
         setNotificationStatus("granted");
         toast({
@@ -316,47 +350,33 @@ export default function HomePage() {
 
   return (
     <Layout>
-      <div className="space-y-8 page-transition">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-          <div className="flex gap-2 justify-between w-full">
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight relative">
+      <div className="container mx-auto py-10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight mb-2">
               Upcoming Samagams
-              <span className="absolute -bottom-2 left-0 w-20 h-1 bg-primary rounded-full"></span>
-            </h2>
-            {!user?.isAdmin && <button
-                onClick={handleNotificationToggle}
-                disabled={notificationStatus === "denied"}
-                className={`
-                  p-2 rounded-full transition-all duration-200
-                  ${notificationStatus === "granted" ? "text-primary bg-primary/10" : ""}
-                  ${notificationStatus === "denied" ? "opacity-50 cursor-not-allowed" : "hover:bg-primary/10"}
-                  sm:h-10 sm:w-10 h-8 w-8
-                `}
-                style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
-                aria-label={notificationStatus === "granted" ? "Disable notifications" : "Enable notifications"}
-              >
-                {isNotificationToggleLoading ? (
-                  <Spinner />
-                ) : notificationStatus === "denied" ? (
-                  <BellOff className="h-5 w-5 sm:h-6 sm:w-6" />
-                ) : (
-                  <Bell
-                    className={`h-5 w-5 sm:h-6 sm:w-6 ${notificationStatus === "granted" ? "fill-primary" : ""}`}
-                  />
-                )}
-              </button>}
+            </h1>
+            <div className="flex items-center gap-3">
+              <p className="text-muted-foreground">
+                Find upcoming kirtan samagams and events
+              </p>
+              <LiveBroadcastIndicator />
+            </div>
           </div>
-          <div className="flex gap-2 items-center justify-end">  
+          <div className="flex gap-2 items-center justify-end">
             {user?.isAdmin && (
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="text-xs sm:text-sm h-8 sm:h-10 px-3 sm:px-4">
+                  <Button
+                    size="sm"
+                    className="text-xs sm:text-sm h-8 sm:h-10 px-3 sm:px-4"
+                  >
                     <Plus className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     Add Samagam
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[600px]">
-                  <SamagamForm 
+                  <SamagamForm
                     onSuccess={() => {
                       // Use direct refetch instead of invalidation
                       refreshData();
@@ -388,12 +408,9 @@ export default function HomePage() {
                 </motion.div>
               ))}
             </div>
-            
+
             {hasMore && (
-              <div 
-                ref={loadMoreRef} 
-                className="flex justify-center mt-8"
-              >
+              <div ref={loadMoreRef} className="flex justify-center mt-8">
                 {isLoadingMore && (
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 )}

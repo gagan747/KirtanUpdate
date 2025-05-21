@@ -29,15 +29,17 @@ export default function SamagamForm({ samagam, onSuccess }: SamagamFormProps) {
   const { toast } = useToast();
   const isEditing = !!samagam;
   const [isUploading, setIsUploading] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(samagam?.imageUrl || null);
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    samagam?.imageUrl || null,
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const dialogCloseRef = useRef<HTMLButtonElement>(null);
 
   // Format the date to YYYY-MM-DD for input type="date"
   const formatDateForInput = (date: Date | string | undefined): string => {
-    if (!date) return new Date().toISOString().split('T')[0];
-    return new Date(date).toISOString().split('T')[0];
+    if (!date) return new Date().toISOString().split("T")[0];
+    return new Date(date).toISOString().split("T")[0];
   };
 
   // Handle the date type correctly for the form
@@ -62,9 +64,10 @@ export default function SamagamForm({ samagam, onSuccess }: SamagamFormProps) {
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    
+
     // Validate file size
-    if (file.size > 5 * 1048576) { // 5MB limit
+    if (file.size > 5 * 1048576) {
+      // 5MB limit
       toast({
         title: "Error",
         description: "Image size exceeds limit of 5MiB",
@@ -79,7 +82,7 @@ export default function SamagamForm({ samagam, onSuccess }: SamagamFormProps) {
       setImagePreview(e.target?.result as string);
     };
     reader.readAsDataURL(file);
-    
+
     // Save the file for form submission
     setSelectedFile(file);
   };
@@ -96,32 +99,32 @@ export default function SamagamForm({ samagam, onSuccess }: SamagamFormProps) {
   const mutation = useMutation({
     mutationFn: async (data: InsertSamagam) => {
       setIsUploading(true);
-      
+
       try {
         // Create FormData to send both image and JSON data
         const formData = new FormData();
-        
+
         // Add the JSON data
-        formData.append('data', JSON.stringify(data));
-        
+        formData.append("data", JSON.stringify(data));
+
         // Add the image file if selected
         if (selectedFile) {
-          formData.append('image', selectedFile);
+          formData.append("image", selectedFile);
         }
-        
+
         // Send the request using axios directly through api
         const url = isEditing ? `/api/samagams/${samagam.id}` : "/api/samagams";
         const method = isEditing ? "PATCH" : "POST";
-        
+
         const response = await api({
           method,
           url,
           data: formData,
           headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+            "Content-Type": "multipart/form-data",
+          },
         });
-        
+
         return response.data;
       } finally {
         setIsUploading(false);
@@ -134,11 +137,11 @@ export default function SamagamForm({ samagam, onSuccess }: SamagamFormProps) {
           ? "Your changes have been saved."
           : "The new samagam has been created.",
       });
-      
+
       // Call onSuccess callback with the updated data
       // The parent component will handle the data refresh
       onSuccess?.(data);
-      
+
       // Close the dialog using ref
       dialogCloseRef.current?.click();
     },
@@ -198,8 +201,8 @@ export default function SamagamForm({ samagam, onSuccess }: SamagamFormProps) {
                 <FormItem>
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="date" 
+                    <Input
+                      type="date"
                       value={formatDateForInput(value)}
                       onChange={(e) => onChange(new Date(e.target.value))}
                       {...fieldProps}
@@ -275,9 +278,9 @@ export default function SamagamForm({ samagam, onSuccess }: SamagamFormProps) {
                   <div className="space-y-2">
                     {imagePreview ? (
                       <div className="relative w-full max-w-md">
-                        <img 
-                          src={imagePreview} 
-                          alt="Samagam Preview" 
+                        <img
+                          src={imagePreview}
+                          alt="Samagam Preview"
                           className="rounded-md object-cover h-48 w-full"
                         />
                         <button
@@ -313,9 +316,9 @@ export default function SamagamForm({ samagam, onSuccess }: SamagamFormProps) {
                         </Button>
                       </div>
                     )}
-                    <Input 
-                      type="hidden" 
-                      value={field.value || ''}
+                    <Input
+                      type="hidden"
+                      value={field.value || ""}
                       onChange={field.onChange}
                       onBlur={field.onBlur}
                       name={field.name}
@@ -327,13 +330,17 @@ export default function SamagamForm({ samagam, onSuccess }: SamagamFormProps) {
               )}
             />
 
-            <Button type="submit" className="w-full" disabled={mutation.isPending || isUploading}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={mutation.isPending || isUploading}
+            >
               {(mutation.isPending || isUploading) && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               {isEditing ? "Update Samagam" : "Create Samagam"}
             </Button>
-            
+
             {/* Hidden DialogClose that will be triggered programmatically */}
             <DialogClose ref={dialogCloseRef} className="hidden" />
           </form>

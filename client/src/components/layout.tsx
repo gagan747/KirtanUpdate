@@ -1,6 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LogOut, Music2, User, LogIn, Video, MapPin, Utensils, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Menu,
+  LogOut,
+  Music2,
+  User,
+  LogIn,
+  Video,
+  MapPin,
+  Utensils,
+  ChevronLeft,
+  ChevronRight,
+  Radio,
+} from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -13,7 +25,15 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-function NavLink({ href, children, isCollapsed }: { href: string; children: React.ReactNode; isCollapsed?: boolean }) {
+function NavLink({
+  href,
+  children,
+  isCollapsed,
+}: {
+  href: string;
+  children: React.ReactNode;
+  isCollapsed?: boolean;
+}) {
   const [location] = useLocation();
   const isActive = location === href;
   const [isHovered, setIsHovered] = useState(false);
@@ -24,12 +44,13 @@ function NavLink({ href, children, isCollapsed }: { href: string; children: Reac
         className={cn(
           "block transition-all duration-200 mb-3 cursor-pointer rounded-lg",
           "text-primary-foreground/80 hover:text-primary-foreground",
-          isActive && "text-primary-foreground font-medium bg-primary-foreground/10 shadow-inner"
+          isActive &&
+            "text-primary-foreground font-medium bg-primary-foreground/10 shadow-inner",
         )}
-        style={{ minWidth: isCollapsed ? 'auto' : '180px' }}
-        whileHover={{ 
+        style={{ minWidth: isCollapsed ? "auto" : "180px" }}
+        whileHover={{
           scale: 1.02,
-          transition: { duration: 0.2 }
+          transition: { duration: 0.2 },
         }}
         whileTap={{ scale: 0.98 }}
         onMouseEnter={() => setIsHovered(true)}
@@ -38,7 +59,7 @@ function NavLink({ href, children, isCollapsed }: { href: string; children: Reac
         <div className="px-3 py-2 flex items-center">
           {children}
           {isActive && !isCollapsed && (
-            <motion.div 
+            <motion.div
               className="ml-auto h-2 w-2 rounded-full bg-primary-foreground"
               layoutId="sidebarIndicator"
             />
@@ -49,10 +70,18 @@ function NavLink({ href, children, isCollapsed }: { href: string; children: Reac
   );
 }
 
-function Sidebar({ className = "", isCollapsed = false, toggleCollapse }: { className?: string; isCollapsed?: boolean; toggleCollapse?: () => void }) {
+function Sidebar({
+  className = "",
+  isCollapsed = false,
+  toggleCollapse,
+}: {
+  className?: string;
+  isCollapsed?: boolean;
+  toggleCollapse?: () => void;
+}) {
   const { user, logoutMutation } = useAuth();
   const isMobile = useIsMobile();
-  
+
   return (
     <div
       className={`${className} p-4 sm:p-6 bg-gradient-to-br from-primary/90 to-primary h-full flex flex-col transition-all duration-300 ease-in-out ${
@@ -64,7 +93,7 @@ function Sidebar({ className = "", isCollapsed = false, toggleCollapse }: { clas
           <Music2 className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
         </div>
         {!isCollapsed && (
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="text-xl sm:text-2xl font-bold text-primary-foreground whitespace-nowrap overflow-hidden"
@@ -79,11 +108,15 @@ function Sidebar({ className = "", isCollapsed = false, toggleCollapse }: { clas
             onClick={toggleCollapse}
             className="absolute right-0 top-1/2 -translate-y-1/2 hover:bg-primary-foreground/10 text-primary-foreground h-8 w-8"
           >
-            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            {isCollapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
           </Button>
         )}
       </div>
-      <motion.nav 
+      <motion.nav
         className="flex-1"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -92,31 +125,51 @@ function Sidebar({ className = "", isCollapsed = false, toggleCollapse }: { clas
         <NavLink href="/" isCollapsed={isCollapsed}>
           <div className="flex items-center">
             <Music2 className="mr-2 h-4 w-4 flex-shrink-0" />
-            {!isCollapsed && <span className="whitespace-nowrap">Upcoming Samagams</span>}
+            {!isCollapsed && (
+              <span className="whitespace-nowrap">Upcoming Samagams</span>
+            )}
           </div>
         </NavLink>
         <NavLink href="/recorded-samagams" isCollapsed={isCollapsed}>
           <div className="flex items-center">
             <Video className="mr-2 h-4 w-4 flex-shrink-0" />
-            {!isCollapsed && <span className="whitespace-nowrap">Recorded Samagams</span>}
+            {!isCollapsed && (
+              <span className="whitespace-nowrap">Recorded Samagams</span>
+            )}
           </div>
         </NavLink>
         <NavLink href="/locations" isCollapsed={isCollapsed}>
           <div className="flex items-center">
             <MapPin className="mr-2 h-4 w-4 flex-shrink-0" />
-            {!isCollapsed && <span className="whitespace-nowrap">Locations</span>}
+            {!isCollapsed && (
+              <span className="whitespace-nowrap">Locations</span>
+            )}
           </div>
         </NavLink>
         <NavLink href="/langar-sewa" isCollapsed={isCollapsed}>
           <div className="flex items-center">
             <div className="mr-2 h-4 w-4 flex-shrink-0">
-              <img src="/icons/langar-sewa.svg" alt="Langar Sewa" className="w-full h-full" />
+              <img
+                src="/icons/langar-sewa.svg"
+                alt="Langar Sewa"
+                className="w-full h-full"
+              />
             </div>
-            {!isCollapsed && <span className="whitespace-nowrap">Langar Sewa</span>}
+            {!isCollapsed && (
+              <span className="whitespace-nowrap">Langar Sewa</span>
+            )}
+          </div>
+        </NavLink>
+        <NavLink href="/broadcast" isCollapsed={isCollapsed}>
+          <div className="flex items-center">
+            <Radio className="mr-2 h-4 w-4 flex-shrink-0" />
+            {!isCollapsed && (
+              <span className="whitespace-nowrap">Live Broadcast</span>
+            )}
           </div>
         </NavLink>
       </motion.nav>
-      <motion.div 
+      <motion.div
         className="border-t border-primary-foreground/20 pt-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -130,9 +183,13 @@ function Sidebar({ className = "", isCollapsed = false, toggleCollapse }: { clas
                   <div className="p-1.5 bg-primary-foreground/10 rounded-full">
                     <User className="h-3.5 w-3.5 flex-shrink-0" />
                   </div>
-                  <span className="text-xs sm:text-sm overflow-hidden text-ellipsis">{user.name}</span>
+                  <span className="text-xs sm:text-sm overflow-hidden text-ellipsis">
+                    {user.name}
+                  </span>
                   {user.isAdmin && (
-                    <span className="text-xs bg-primary-foreground/20 px-2 py-1 rounded-full ml-auto">Admin</span>
+                    <span className="text-xs bg-primary-foreground/20 px-2 py-1 rounded-full ml-auto">
+                      Admin
+                    </span>
                   )}
                 </>
               )}
@@ -177,15 +234,22 @@ export default function Layout({ children }: LayoutProps) {
             <div className="container flex h-14 items-center px-4">
               <Sheet open={showMobileMenu} onOpenChange={setShowMobileMenu}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="mr-2 text-primary">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="mr-2 text-primary"
+                  >
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-[240px] sm:w-[280px]">
+                <SheetContent
+                  side="left"
+                  className="p-0 w-[240px] sm:w-[280px]"
+                >
                   <MobileNav onClose={() => setShowMobileMenu(false)} />
                 </SheetContent>
               </Sheet>
-              <motion.div 
+              <motion.div
                 className="flex items-center gap-2"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -194,7 +258,9 @@ export default function Layout({ children }: LayoutProps) {
                 <div className="p-1.5 bg-primary/10 rounded-full">
                   <Music2 className="h-5 w-5 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <h1 className="text-lg sm:text-xl font-semibold text-primary">Kirtan Update</h1>
+                <h1 className="text-lg sm:text-xl font-semibold text-primary">
+                  Kirtan Update
+                </h1>
               </motion.div>
             </div>
           </header>
@@ -210,7 +276,11 @@ export default function Layout({ children }: LayoutProps) {
         </>
       ) : (
         <div className="flex">
-          <Sidebar className="sticky top-0 h-screen" isCollapsed={isCollapsed} toggleCollapse={toggleCollapse} />
+          <Sidebar
+            className="sticky top-0 h-screen"
+            isCollapsed={isCollapsed}
+            toggleCollapse={toggleCollapse}
+          />
           <div className="flex-1">
             <main className="p-6 sm:p-8">
               <motion.div

@@ -1,13 +1,15 @@
-import 'dotenv/config';
+import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
-import cookieParser from 'cookie-parser';
-import admin from 'firebase-admin';
+import cookieParser from "cookie-parser";
+import http from "http";
+import admin from "firebase-admin";
 import { registerRoutes } from "./routes";
+import { setupSocketServer } from "./socket"; // Import socket server setup
 import { storage } from "./storage"; // Import storage
 import { setupVite, serveStatic, log } from "./vite";
-import cors from 'cors';
-import path from 'path';
-import fs from 'fs';
+import cors from "cors";
+import path from "path";
+import fs from "fs";
 
 const app = express();
 app.use(express.json());
@@ -18,15 +20,25 @@ app.use(cookieParser());
 const corsOptions = {
   origin: true, // Allow all origins in development
   credentials: true, // Allow cookies
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With', 
-                  'sec-ch-ua', 'sec-ch-ua-mobile', 'sec-ch-ua-platform', 'Referer', 'Referrer-Policy']
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "Accept",
+    "Origin",
+    "X-Requested-With",
+    "sec-ch-ua",
+    "sec-ch-ua-mobile",
+    "sec-ch-ua-platform",
+    "Referer",
+    "Referrer-Policy",
+  ],
 };
 
 app.use(cors(corsOptions));
- 
+
 // Add preflight OPTIONS handler
-app.options('*', cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -59,6 +71,12 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Create HTTP server
+  const server = http.createServer(app);
+
+  // Initialize Socket.io
+  setupSocketServer(server);
+
   // Initialize Firebase Admin SDK
   // try {
   //   const serviceAccountPath = path.resolve(process.cwd(), 'firebase-service-account.json');
@@ -96,7 +114,7 @@ app.use((req, res, next) => {
   //         };
 
   //         log(`Attempting to send notification to ${deviceTokens.length} tokens.`);
-          
+
   //         // Create a list of messages to send
   //         const messages: admin.messaging.Message[] = deviceTokens.map(token => ({
   //           notification: message.notification,
@@ -110,7 +128,7 @@ app.use((req, res, next) => {
   //         }
 
   //         const response = await admin.messaging().sendEach(messages); // sendEach is an alias for sendEachForMulticast
-          
+
   //         log(`Notifications sent: ${response.successCount} successful, ${response.failureCount} failed.`);
 
   //         if (response.failureCount > 0) {
@@ -148,7 +166,7 @@ app.use((req, res, next) => {
   //   log(`Failed to initialize Firebase Admin SDK: ${error instanceof Error ? error.message : String(error)}`);
   // }
 
-  const server = await registerRoutes(app);
+  await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

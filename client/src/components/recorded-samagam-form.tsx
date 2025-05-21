@@ -1,7 +1,11 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertRecordedSamagamSchema, InsertRecordedSamagam, RecordedSamagam } from "@shared/schema";
+import {
+  insertRecordedSamagamSchema,
+  InsertRecordedSamagam,
+  RecordedSamagam,
+} from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -25,7 +29,11 @@ interface RecordedSamagamFormProps {
   onSubmit?: (data: InsertRecordedSamagam) => void; // For handling updates externally
 }
 
-export default function RecordedSamagamForm({ samagamToEdit, onSuccess, onSubmit }: RecordedSamagamFormProps) {
+export default function RecordedSamagamForm({
+  samagamToEdit,
+  onSuccess,
+  onSubmit,
+}: RecordedSamagamFormProps) {
   const { toast } = useToast();
   const isEditMode = !!samagamToEdit;
 
@@ -65,7 +73,6 @@ export default function RecordedSamagamForm({ samagamToEdit, onSuccess, onSubmit
     }
   }, [samagamToEdit, form, isEditMode]);
 
-
   // Internal mutation for adding new recordings
   const addMutation = useMutation({
     mutationFn: async (data: InsertRecordedSamagam) => {
@@ -79,7 +86,7 @@ export default function RecordedSamagamForm({ samagamToEdit, onSuccess, onSubmit
         description: "The recorded samagam has been added successfully.",
       });
       form.reset(); // Reset form after successful add
-      
+
       // Call the parent's success handler after a brief delay to ensure state updates
       setTimeout(() => {
         onSuccess?.(); // Call external success handler (e.g., close dialog)
@@ -97,11 +104,11 @@ export default function RecordedSamagamForm({ samagamToEdit, onSuccess, onSubmit
   const handleSubmit = (data: InsertRecordedSamagam) => {
     // Ensure YouTube URL is properly formatted
     let youtubeUrl = data.youtubeUrl;
-    if (youtubeUrl && !youtubeUrl.startsWith('http')) {
+    if (youtubeUrl && !youtubeUrl.startsWith("http")) {
       youtubeUrl = `https://${youtubeUrl}`;
       data.youtubeUrl = youtubeUrl;
     }
-    
+
     if (isEditMode && onSubmit) {
       onSubmit(data); // Call external submit handler for updates
     } else if (!isEditMode) {
@@ -114,10 +121,7 @@ export default function RecordedSamagamForm({ samagamToEdit, onSuccess, onSubmit
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(handleSubmit)}
-        className="space-y-4"
-      >
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="title"
@@ -157,9 +161,9 @@ export default function RecordedSamagamForm({ samagamToEdit, onSuccess, onSubmit
             <FormItem>
               <FormLabel>YouTube URL</FormLabel>
               <FormControl>
-                <Input 
-                  placeholder="Enter YouTube video URL" 
-                  {...field} 
+                <Input
+                  placeholder="Enter YouTube video URL"
+                  {...field}
                   type="url"
                 />
               </FormControl>
@@ -178,20 +182,26 @@ export default function RecordedSamagamForm({ samagamToEdit, onSuccess, onSubmit
             <FormItem>
               <FormLabel>Date</FormLabel>
               <FormControl>
-                <Input 
-                  type="date" 
+                <Input
+                  type="date"
                   // Ensure value is always a string in 'yyyy-MM-dd' format for the input
-                  value={field.value instanceof Date ? format(field.value, 'yyyy-MM-dd') : ''}
+                  value={
+                    field.value instanceof Date
+                      ? format(field.value, "yyyy-MM-dd")
+                      : ""
+                  }
                   onChange={(e) => {
                     // When the input changes, parse the date string back into a Date object
                     // Handle potential invalid date string
-                    const dateValue = e.target.value ? new Date(e.target.value + 'T00:00:00') : null; // Add time to avoid timezone issues
+                    const dateValue = e.target.value
+                      ? new Date(e.target.value + "T00:00:00")
+                      : null; // Add time to avoid timezone issues
                     if (dateValue && !isNaN(dateValue.getTime())) {
-                       field.onChange(dateValue);
+                      field.onChange(dateValue);
                     } else {
-                       // Handle invalid date input, maybe clear or set to null depending on requirements
-                       // For now, let's keep the previous value or set null if input is cleared
-                       field.onChange(e.target.value ? field.value : null); 
+                      // Handle invalid date input, maybe clear or set to null depending on requirements
+                      // For now, let's keep the previous value or set null if input is cleared
+                      field.onChange(e.target.value ? field.value : null);
                     }
                   }}
                 />
@@ -202,9 +212,7 @@ export default function RecordedSamagamForm({ samagamToEdit, onSuccess, onSubmit
         />
 
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
+          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isEditMode ? "Update Recording" : "Add Recording"}
         </Button>
       </form>

@@ -7,15 +7,15 @@ This directory contains the axios API client setup with interceptors to automati
 Instead of using axios directly, import the `api` client from this directory:
 
 ```typescript
-import api from '../lib/api';
+import api from "../lib/api";
 
 // Example GET request
 const fetchData = async () => {
   try {
-    const response = await api.get('/users');
+    const response = await api.get("/users");
     return response.data;
   } catch (error) {
-    console.error('Error fetching users:', error);
+    console.error("Error fetching users:", error);
     throw error;
   }
 };
@@ -23,10 +23,10 @@ const fetchData = async () => {
 // Example POST request
 const createUser = async (userData) => {
   try {
-    const response = await api.post('/users', userData);
+    const response = await api.post("/users", userData);
     return response.data;
   } catch (error) {
-    console.error('Error creating user:', error);
+    console.error("Error creating user:", error);
     throw error;
   }
 };
@@ -43,4 +43,4 @@ const createUser = async (userData) => {
 
 The API client uses these environment variables:
 
-- `VITE_SERVER_URL` - The URL of the API server (defaults to http://localhost:5000) 
+- `VITE_SERVER_URL` - The URL of the API server (defaults to http://localhost:5000)

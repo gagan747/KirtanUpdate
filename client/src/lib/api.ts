@@ -1,25 +1,25 @@
-import axios from 'axios';
-
+import axios from "axios";
+import { SERVER_URL } from "../utils/constants";
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: 'https://kirtanupdate.onrender.com/',
+  baseURL: SERVER_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   withCredentials: true, // Important for cookies/session
 });
 
 // Token storage utility functions
 export const getToken = (): string | null => {
-  return localStorage.getItem('jwt_token');
+  return localStorage.getItem("jwt_token");
 };
 
 export const setToken = (token: string): void => {
-  localStorage.setItem('jwt_token', token);
+  localStorage.setItem("jwt_token", token);
 };
 
 export const clearToken = (): void => {
-  localStorage.removeItem('jwt_token');
+  localStorage.removeItem("jwt_token");
 };
 
 // Request interceptor
@@ -34,7 +34,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor
@@ -51,11 +51,11 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Clear token on authentication failure
       clearToken();
-      console.error('Unauthorized request');
+      console.error("Unauthorized request");
       // Could redirect to login page if needed
     }
     return Promise.reject(error);
-  }
+  },
 );
 
-export default api; 
+export default api;

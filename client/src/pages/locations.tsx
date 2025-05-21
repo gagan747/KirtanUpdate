@@ -13,7 +13,11 @@ function LocationForm() {
   return <div>Location Form Coming Soon</div>;
 }
 
-function LocationMap({ coordinates }: { coordinates: { lat: number; lng: number } }) {
+function LocationMap({
+  coordinates,
+}: {
+  coordinates: { lat: number; lng: number };
+}) {
   return (
     <div className="aspect-[4/3] rounded-lg overflow-hidden">
       <iframe
@@ -54,7 +58,10 @@ export default function LocationsPage() {
         {user?.isAdmin && (
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="text-xs sm:text-sm h-8 sm:h-10 px-3 sm:px-4">
+              <Button
+                size="sm"
+                className="text-xs sm:text-sm h-8 sm:h-10 px-3 sm:px-4"
+              >
                 <Plus className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Add Location
               </Button>
@@ -79,12 +86,18 @@ export default function LocationsPage() {
               <LocationMap coordinates={location.coordinates} />
               <div className="space-y-1 sm:space-y-2">
                 <p className="text-sm sm:text-base font-medium">Address</p>
-                <p className="text-xs sm:text-sm text-muted-foreground">{location.address}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  {location.address}
+                </p>
               </div>
               {location.description && (
                 <div className="space-y-1 sm:space-y-2">
-                  <p className="text-sm sm:text-base font-medium">Description</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">{location.description}</p>
+                  <p className="text-sm sm:text-base font-medium">
+                    Description
+                  </p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    {location.description}
+                  </p>
                 </div>
               )}
             </CardContent>
