@@ -24,11 +24,13 @@ export const samagams = pgTable("samagams", {
   title: text("title").notNull(),
   description: text("description").notNull(),
   date: timestamp("date").notNull(),
-  time: text("time").notNull(),
+  timeFrom: text("time_from").notNull(),
+  timeTo: text("time_to").notNull(),
   location: text("location").notNull(),
   organizer: text("organizer").notNull(),
   contactInfo: text("contact_info").notNull(),
   imageUrl: text("image_url"),
+  color: text("color").notNull().default("#3B82F6"), // Default blue color
 });
 
 export const recordedSamagams = pgTable("recorded_samagams", {
@@ -58,7 +60,7 @@ export const fcmTokens = pgTable("fcm_tokens", {
 
 // Live Broadcast table
 export const liveBroadcasts = pgTable("live_broadcasts", {
-  id: integer("id").primaryKey(),
+  id: serial("id").primaryKey(),
   socketId: text("socket_id").notNull(),
   roomName: text("room_name").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -76,11 +78,13 @@ export const insertSamagamSchema = createInsertSchema(samagams)
     title: true,
     description: true,
     date: true,
-    time: true,
+    timeFrom: true,
+    timeTo: true,
     location: true,
     organizer: true,
     contactInfo: true,
     imageUrl: true,
+    color: true,
   })
   .extend({
     date: z.coerce.date(), // Coerce date to handle string inputs

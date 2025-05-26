@@ -3,4 +3,7 @@
  */
 
 // API and socket server URL
-export const SERVER_URL: string = "http://localhost:5000";
+// Use localhost in development, production URL in production build
+export const SERVER_URL: string = import.meta.env.MODE === 'development' 
+  ? "http://localhost:5000" 
+  : "https://kirtanupdate.onrender.com";

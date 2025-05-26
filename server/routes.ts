@@ -69,6 +69,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Calendar endpoint for upcoming samagams - must be before :id route
+  app.get("/api/samagams/calendar", async (req, res) => {
+    console.log("Calendar API endpoint called");
+    try {
+      const calendarSamagams = await storage.getCalendarSamagams();
+      console.log("Calendar API response:", calendarSamagams);
+      res.json(calendarSamagams);
+    } catch (error) {
+      console.error("Error fetching calendar samagams:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Internal Server Error",
+        details: error instanceof Error ? error.stack : undefined
+      });
+    }
+  });
+
   app.get("/api/samagams/:id", async (req, res) => {
     const samagam = await storage.getSamagam(parseInt(req.params.id));
     if (!samagam) return res.status(404).json({ message: "Samagam not found" });

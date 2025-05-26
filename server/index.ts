@@ -7,6 +7,7 @@ import { registerRoutes } from "./routes";
 import { setupSocketServer } from "./socket"; // Import socket server setup
 import { storage } from "./storage"; // Import storage
 import { setupVite, serveStatic, log } from "./vite";
+import { startSamagamScheduler, runInitialCleanup } from "./scheduler";
 import cors from "cors";
 import path from "path";
 import fs from "fs";
@@ -167,6 +168,32 @@ app.use((req, res, next) => {
   // }
 
   await registerRoutes(app);
+
+  // Initialize samagam cleanup scheduler
+  await runInitialCleanup();
+  startSamagamScheduler();
+
+  // Keep-alive ping to prevent Render.com server from sleeping
+  const KEEP_ALIVE_URL = "https://kirtanupdate.onrender.com/";
+  const PING_INTERVAL = 2 * 60 * 1000; // 2 minutes in milliseconds
+  
+  if (process.env.NODE_ENV === "production") {
+    setInterval(async () => {
+      try {
+        const response = await fetch(KEEP_ALIVE_URL, {
+          method: 'GET',
+          headers: {
+            'User-Agent': 'Keep-Alive-Ping'
+          }
+        });
+        log(`Keep-alive ping sent to ${KEEP_ALIVE_URL} - Status: ${response.status}`);
+      } catch (error) {
+        log(`Keep-alive ping failed: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }, PING_INTERVAL);
+    
+    log(`Keep-alive ping scheduled every ${PING_INTERVAL / 60000} minutes to ${KEEP_ALIVE_URL}`);
+  }
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

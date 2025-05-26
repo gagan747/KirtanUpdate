@@ -18,6 +18,7 @@ import Layout from "@/components/layout";
 import { useAuth } from "@/hooks/use-auth";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import SamagamForm from "@/components/samagam-form";
+import CalendarModal from "@/components/calendar-modal";
 import { motion } from "framer-motion";
 import { useEffect, useState, useRef, useCallback } from "react";
 import {
@@ -29,10 +30,14 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import Spinner from "@/components/ui/spinner";
 import { LiveBroadcastIndicator } from "@/components/live-broadcast-indicator";
+import { formatSamagamTimeDisplay, isSamagamUpcoming } from "@/utils/time";
 
 function SamagamCard({ samagam }: { samagam: Samagam }) {
   const { user } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
+
+  // Check if this samagam is upcoming (within next 7 days)
+  const isUpcoming = isSamagamUpcoming(samagam.date);
 
   return (
     <motion.div
@@ -61,6 +66,24 @@ function SamagamCard({ samagam }: { samagam: Samagam }) {
                 {format(new Date(samagam.date), "MMM d")}
               </span>
             </div>
+            {isUpcoming && (
+              <div className="absolute top-2 left-2 z-10">
+                <motion.span
+                  animate={{
+                    scale: [1, 1.05, 1],
+                    opacity: [0.8, 1, 0.8],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium shadow-lg"
+                >
+                  Upcoming
+                </motion.span>
+              </div>
+            )}
           </div>
           <CardHeader className="pb-2 flex-shrink-0">
             <CardTitle className="text-base sm:text-lg line-clamp-1 text-ellipsis overflow-hidden group-hover:text-primary transition-colors">
@@ -77,7 +100,9 @@ function SamagamCard({ samagam }: { samagam: Samagam }) {
               </div>
               <div className="flex items-center">
                 <Clock className="samagam-details-icon h-4 w-4" />
-                <span className="samagam-details-text">{samagam.time}</span>
+                <span className="samagam-details-text">
+                  {formatSamagamTimeDisplay(samagam)}
+                </span>
               </div>
               <div className="flex items-center">
                 <MapPin className="samagam-details-icon h-4 w-4" />
@@ -236,6 +261,7 @@ export default function HomePage() {
   >("pending");
   const [isNotificationToggleLoading, setIsNotificationToggleLoading] =
     useState(false);
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
 
   useEffect(() => {
     const checkNotificationStatus = async () => {
@@ -352,10 +378,47 @@ export default function HomePage() {
     <Layout>
       <div className="container mx-auto py-10">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8">
-          <div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2 justify-between">
             <h1 className="text-3xl font-bold tracking-tight mb-2">
               Upcoming Samagams
             </h1>
+             {!user?.isAdmin && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsCalendarModalOpen(true)}
+                  className="p-2 rounded-full transition-all duration-200 hover:bg-primary/10 sm:h-10 sm:w-10 h-8 w-8"
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+                  aria-label="Future Samagams"
+                  title="Future Samagams"
+                >
+                  <Calendar className="h-5 w-5 sm:h-6 sm:w-6" />
+                </button>
+                <button
+                  onClick={handleNotificationToggle}
+                  disabled={notificationStatus === "denied"}
+                  className={`
+                    p-2 rounded-full transition-all duration-200
+                    ${notificationStatus === "granted" ? "text-primary bg-primary/10" : ""}
+                    ${notificationStatus === "denied" ? "opacity-50 cursor-not-allowed" : "hover:bg-primary/10"}
+                    sm:h-10 sm:w-10 h-8 w-8
+                  `}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+                  aria-label={notificationStatus === "granted" ? "Disable notifications" : "Enable notifications"}
+                >
+                  {isNotificationToggleLoading ? (
+                    <Spinner />
+                  ) : notificationStatus === "denied" ? (
+                    <BellOff className="h-5 w-5 sm:h-6 sm:w-6" />
+                  ) : (
+                    <Bell
+                      className={`h-5 w-5 sm:h-6 sm:w-6 ${notificationStatus === "granted" ? "fill-primary" : ""}`}
+                    />
+                  )}
+                </button>
+              </div>
+            )}
+            </div>
             <div className="flex items-center gap-3">
               <p className="text-muted-foreground">
                 Find upcoming kirtan samagams and events
@@ -419,6 +482,11 @@ export default function HomePage() {
           </>
         )}
       </div>
+      
+      <CalendarModal 
+        open={isCalendarModalOpen} 
+        onOpenChange={setIsCalendarModalOpen} 
+      />
     </Layout>
   );
 }

@@ -53,11 +53,13 @@ export default function SamagamForm({ samagam, onSuccess }: SamagamFormProps) {
       title: samagam?.title ?? "",
       description: samagam?.description ?? "",
       date: getDefaultDate(),
-      time: samagam?.time ?? "",
+      timeFrom: samagam?.timeFrom ?? (samagam as any)?.time?.split(" - ")[0] ?? "",
+      timeTo: samagam?.timeTo ?? (samagam as any)?.time?.split(" - ")[1] ?? "",
       location: samagam?.location ?? "",
       organizer: samagam?.organizer ?? "",
       contactInfo: samagam?.contactInfo ?? "",
       imageUrl: samagam?.imageUrl ?? "",
+      color: samagam?.color ?? "#3B82F6",
     },
   });
 
@@ -213,19 +215,35 @@ export default function SamagamForm({ samagam, onSuccess }: SamagamFormProps) {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="time"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Time</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. 7:00 PM - 9:00 PM" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="timeFrom"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Start Time</FormLabel>
+                    <FormControl>
+                      <Input type="time" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="timeTo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>End Time</FormLabel>
+                    <FormControl>
+                      <Input type="time" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
@@ -263,6 +281,33 @@ export default function SamagamForm({ samagam, onSuccess }: SamagamFormProps) {
                   <FormLabel>Contact Information</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter contact information" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="color"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Calendar Color</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center gap-3">
+                      <Input
+                        type="color"
+                        {...field}
+                        className="w-16 h-10 p-1 border rounded-md cursor-pointer"
+                      />
+                      <Input
+                        type="text"
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="#3B82F6"
+                        className="flex-1"
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

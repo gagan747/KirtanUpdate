@@ -19,8 +19,8 @@ import {
   liveBroadcasts,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
-import { count } from "drizzle-orm";
+import { eq, and, gte } from "drizzle-orm";
+import { count, asc } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -78,7 +78,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllSamagams(): Promise<Samagam[]> {
-    return await db.select().from(samagams);
+    return await db.select().from(samagams).orderBy(asc(samagams.date));
   }
 
   async getPaginatedSamagams(
@@ -88,6 +88,7 @@ export class DatabaseStorage implements IStorage {
     const results = await db
       .select()
       .from(samagams)
+      .orderBy(asc(samagams.date))
       .limit(limit)
       .offset(offset);
     const [countResult] = await db.select({ count: count() }).from(samagams);
@@ -123,6 +124,35 @@ export class DatabaseStorage implements IStorage {
       .where(eq(samagams.id, id))
       .returning();
     return !!deleted;
+  }
+
+  async getCalendarSamagams(): Promise<Array<{id: number, title: string, date: string, color: string}>> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today
+    
+    console.log("Fetching calendar samagams, today is:", today.toISOString());
+    
+    const results = await db
+      .select({
+        id: samagams.id,
+        title: samagams.title,
+        date: samagams.date,
+        color: samagams.color,
+      })
+      .from(samagams)
+      .where(gte(samagams.date, today))
+      .orderBy(asc(samagams.date));
+    
+    console.log("Found calendar samagams:", results);
+    
+    const mappedResults = results.map(result => ({
+      ...result,
+      date: result.date.toISOString(),
+    }));
+    
+    console.log("Mapped calendar samagams:", mappedResults);
+    
+    return mappedResults;
   }
 
   // Recorded Samagam operations
@@ -286,7 +316,7 @@ export class DatabaseStorage implements IStorage {
     // First delete any existing broadcasts to ensure only one active broadcast
     await db.delete(liveBroadcasts);
 
-    // Create new broadcast entry
+    // Create new broadcast entry - let the database assign the id
     const [liveBroadcast] = await db
       .insert(liveBroadcasts)
       .values({
