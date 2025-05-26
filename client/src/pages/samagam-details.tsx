@@ -35,6 +35,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { formatSamagamTimeDisplay } from "@/utils/time";
 
 export default function SamagamDetails() {
   const { user } = useAuth();
@@ -312,7 +313,7 @@ export default function SamagamDetails() {
                         Time
                       </div>
                       <div className="text-xs sm:text-sm text-muted-foreground">
-                        {samagam.time}
+                        {formatSamagamTimeDisplay(samagam)}
                       </div>
                     </div>
                   </motion.div>

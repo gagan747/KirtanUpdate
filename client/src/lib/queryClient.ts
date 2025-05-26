@@ -26,6 +26,11 @@ export async function apiRequest(
                     data,
                   });
 
+    // Always return response.data, or an empty array for array endpoints if data is undefined
+    if (url.includes("/calendar") && !response.data) {
+      console.warn("Calendar endpoint returned no data, defaulting to empty array");
+      return [];
+    }
     return response.data;
   } catch (error: any) {
     console.error("API Request Error:", error);
@@ -37,6 +42,12 @@ export async function apiRequest(
         description: error.response?.data?.message || "Something went wrong",
         variant: "destructive",
       });
+    }
+
+    // For calendar endpoint, return empty array on error
+    if (url.includes("/calendar")) {
+      console.warn("Calendar endpoint error, defaulting to empty array");
+      return [];
     }
 
     throw new Error(
