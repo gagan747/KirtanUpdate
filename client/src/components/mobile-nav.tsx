@@ -9,6 +9,7 @@ import {
   MapPin,
   Utensils,
   Radio,
+  BookOpen,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
@@ -49,10 +50,18 @@ export function MobileNav({ onClose }: MobileNavProps) {
       label: "Recorded Samagams",
     },
     {
+      href: "/gurmat-camp",
+      icon: <BookOpen className="mr-2 h-4 w-4 flex-shrink-0" />,
+      label: "Gurmat Camp",
+    },
+    /* Locations tab commented out
+    {
       href: "/locations",
       icon: <MapPin className="mr-2 h-4 w-4 flex-shrink-0" />,
       label: "Locations",
     },
+    */
+    /* Langar Sewa tab commented out
     {
       href: "/langar-sewa",
       icon: (
@@ -66,11 +75,12 @@ export function MobileNav({ onClose }: MobileNavProps) {
       ),
       label: "Langar Sewa",
     },
-    {
-      href: "/broadcast",
-      icon: <Radio className="mr-2 h-4 w-4 flex-shrink-0" />,
-      label: "Live Broadcast",
-    },
+    */
+    // {
+    //   href: "/broadcast",
+    //   icon: <Radio className="mr-2 h-4 w-4 flex-shrink-0" />,
+    //   label: "Live Broadcast",
+    // },
   ];
 
   const container: Variants = {
@@ -89,19 +99,22 @@ export function MobileNav({ onClose }: MobileNavProps) {
   };
 
   return (
-    <div className="p-4 sm:p-6 bg-gradient-to-br from-primary/90 to-primary h-full flex flex-col">
+    <div className="p-4 sm:p-6 bg-gradient-to-br from-primary/90 to-primary h-full flex flex-col" >
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="flex items-center gap-2 mb-8"
+        className="flex items-center mb-8 pr-10"
       >
-        <div className="p-2 bg-primary-foreground/10 rounded-full">
-          <Music2 className="h-6 w-6 text-primary-foreground" />
+        <div></div>
+        <div className="flex items-center gap-3" >
+          <div className="p-2 bg-primary-foreground/10 rounded-full flex-shrink-0">
+            <Music2 className="h-6 w-6 text-primary-foreground" />
+          </div>
+          <h1 className="text-xl font-bold text-primary-foreground truncate">
+            Kirtan Update
+          </h1>
         </div>
-        <h1 className="text-xl font-bold text-primary-foreground">
-          Kirtan Update
-        </h1>
       </motion.div>
 
       <motion.nav

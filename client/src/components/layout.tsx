@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Radio,
+  BookOpen,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
@@ -88,30 +89,32 @@ function Sidebar({
         isCollapsed ? "w-20" : "w-[280px]"
       }`}
     >
-      <div className="flex items-center gap-2 sm:gap-3 mb-8 sm:mb-10 relative">
-        <div className="p-2 bg-primary-foreground/10 rounded-full">
-          <Music2 className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
+      <div className="flex items-center justify-between mb-8 sm:mb-10 w-full">
+        <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
+          <div className="p-2 bg-primary-foreground/10 rounded-full flex-shrink-0">
+            <Music2 className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
+          </div>
+          {!isCollapsed && (
+            <motion.h1
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-xl sm:text-2xl font-bold text-primary-foreground truncate"
+            >
+              Kirtan Update
+            </motion.h1>
+          )}
         </div>
-        {!isCollapsed && (
-          <motion.h1
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-xl sm:text-2xl font-bold text-primary-foreground whitespace-nowrap overflow-hidden"
-          >
-            Kirtan Update
-          </motion.h1>
-        )}
         {toggleCollapse && (
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleCollapse}
-            className="absolute right-0 top-1/2 -translate-y-1/2 hover:bg-primary-foreground/10 text-primary-foreground h-8 w-8"
+            className="flex-shrink-0 hover:bg-primary-foreground/10 text-primary-foreground h-8 w-8 ml-2"
           >
             {isCollapsed ? (
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4 text-white" />
             ) : (
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4 text-white" />
             )}
           </Button>
         )}
@@ -138,6 +141,15 @@ function Sidebar({
             )}
           </div>
         </NavLink>
+        <NavLink href="/gurmat-camp" isCollapsed={isCollapsed}>
+          <div className="flex items-center">
+            <BookOpen className="mr-2 h-4 w-4 flex-shrink-0" />
+            {!isCollapsed && (
+              <span className="whitespace-nowrap">Gurmat Camp</span>
+            )}
+          </div>
+        </NavLink>
+        {/* Locations tab commented out
         <NavLink href="/locations" isCollapsed={isCollapsed}>
           <div className="flex items-center">
             <MapPin className="mr-2 h-4 w-4 flex-shrink-0" />
@@ -146,6 +158,8 @@ function Sidebar({
             )}
           </div>
         </NavLink>
+        */}
+        {/* Langar Sewa tab commented out
         <NavLink href="/langar-sewa" isCollapsed={isCollapsed}>
           <div className="flex items-center">
             <div className="mr-2 h-4 w-4 flex-shrink-0">
@@ -160,14 +174,15 @@ function Sidebar({
             )}
           </div>
         </NavLink>
-        <NavLink href="/broadcast" isCollapsed={isCollapsed}>
+        */}
+        {/* <NavLink href="/broadcast" isCollapsed={isCollapsed}>
           <div className="flex items-center">
             <Radio className="mr-2 h-4 w-4 flex-shrink-0" />
             {!isCollapsed && (
               <span className="whitespace-nowrap">Live Broadcast</span>
             )}
           </div>
-        </NavLink>
+        </NavLink> */}
       </motion.nav>
       <motion.div
         className="border-t border-primary-foreground/20 pt-4"
@@ -231,37 +246,39 @@ export default function Layout({ children }: LayoutProps) {
       {isMobile ? (
         <>
           <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
-            <div className="container flex h-14 items-center px-4">
-              <Sheet open={showMobileMenu} onOpenChange={setShowMobileMenu}>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="mr-2 text-primary"
+            <div className="container flex h-14 items-center justify-between px-4">
+              <div className="flex items-center gap-3">
+                <Sheet open={showMobileMenu} onOpenChange={setShowMobileMenu}>
+                  <SheetTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-primary flex-shrink-0 h-10 w-10"
+                    >
+                      <Menu className="h-5 w-5 text-primary" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent
+                    side="left"
+                    className="p-0 w-[240px] sm:w-[280px]"
                   >
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent
-                  side="left"
-                  className="p-0 w-[240px] sm:w-[280px]"
+                    <MobileNav onClose={() => setShowMobileMenu(false)} />
+                  </SheetContent>
+                </Sheet>
+                <motion.div
+                  className="flex items-center gap-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
                 >
-                  <MobileNav onClose={() => setShowMobileMenu(false)} />
-                </SheetContent>
-              </Sheet>
-              <motion.div
-                className="flex items-center gap-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="p-1.5 bg-primary/10 rounded-full">
-                  <Music2 className="h-5 w-5 sm:h-5 sm:w-5 text-primary" />
-                </div>
-                <h1 className="text-lg sm:text-xl font-semibold text-primary">
-                  Kirtan Update
-                </h1>
-              </motion.div>
+                  <div className="p-1.5 bg-primary/10 rounded-full flex-shrink-0">
+                    <Music2 className="h-5 w-5 sm:h-5 sm:w-5 text-primary" />
+                  </div>
+                  <h1 className="text-lg sm:text-xl font-semibold text-primary">
+                    Kirtan Update
+                  </h1>
+                </motion.div>
+              </div>
             </div>
           </header>
           <main className="container py-4 sm:py-6 px-4">

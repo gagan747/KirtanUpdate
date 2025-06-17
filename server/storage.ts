@@ -17,9 +17,12 @@ import {
   type LiveBroadcast,
   type InsertLiveBroadcast,
   liveBroadcasts,
+  type GurmatCampRegistration,
+  type InsertGurmatCampRegistration,
+  gurmatCampRegistrations,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, gte } from "drizzle-orm";
+import { eq, and, gte, desc } from "drizzle-orm";
 import { count, asc } from "drizzle-orm";
 
 export interface IStorage {
@@ -41,6 +44,12 @@ export interface IStorage {
   getLiveBroadcasts(): Promise<LiveBroadcast[]>;
   deleteLiveBroadcastBySocketId(socketId: string): Promise<boolean>;
   hasActiveBroadcast(): Promise<boolean>;
+
+  // Gurmat Camp Registration operations
+  createGurmatCampRegistration(data: InsertGurmatCampRegistration): Promise<GurmatCampRegistration>;
+  getGurmatCampRegistrationByEmail(email: string): Promise<GurmatCampRegistration | undefined>;
+  getAllGurmatCampRegistrations(): Promise<GurmatCampRegistration[]>;
+
   // Other methods...
 }
 
@@ -344,6 +353,38 @@ export class DatabaseStorage implements IStorage {
   async hasActiveBroadcast(): Promise<boolean> {
     const broadcasts = await this.getLiveBroadcasts();
     return broadcasts.length > 0;
+  }
+
+  // Gurmat Camp Registration operations
+  async createGurmatCampRegistration(data: InsertGurmatCampRegistration): Promise<GurmatCampRegistration> {
+    try {
+      const [registration] = await db
+        .insert(gurmatCampRegistrations)
+        .values(data)
+        .returning();
+      return registration;
+    } catch (error: any) {
+      // Handle unique constraint violation for email
+      if (error.message.includes('unique constraint') && error.message.includes('email')) {
+        throw new Error('Registration failed: email already exists');
+      }
+      throw error;
+    }
+  }
+
+  async getGurmatCampRegistrationByEmail(email: string): Promise<GurmatCampRegistration | undefined> {
+    const [registration] = await db
+      .select()
+      .from(gurmatCampRegistrations)
+      .where(eq(gurmatCampRegistrations.email, email));
+    return registration;
+  }
+
+  async getAllGurmatCampRegistrations(): Promise<GurmatCampRegistration[]> {
+    return await db
+      .select()
+      .from(gurmatCampRegistrations)
+      .orderBy(desc(gurmatCampRegistrations.createdAt));
   }
 }
 

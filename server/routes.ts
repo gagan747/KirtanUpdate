@@ -13,6 +13,7 @@ import { db } from "./db";
 import { setupAuthRoutes, authenticate, requireAdmin } from "./jwt-auth";
 import { upload, handleMulterError } from "./middlewares/upload";
 import { uploadImageBuffer } from "./cloudinary";
+import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup JWT authentication routes
@@ -424,6 +425,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     },
   );
+
+  // Gurmat Camp Registration routes
+  const gurmatCampSchema = z.object({
+    name: z.string().min(1, "Name is required"),
+    age: z.string().min(1, "Age is required"),
+    gender: z.string().min(1, "Gender is required"),
+    address: z.string().min(1, "Address is required"),
+    fatherName: z.string().min(1, "Father's name is required"),
+    motherName: z.string().min(1, "Mother's name is required"),
+    contactNumber: z.string().min(10, "Contact number must be at least 10 digits"),
+    email: z.string().email("Invalid email address")
+  });
+
+  app.post("/api/gurmat-camp", async (req, res) => {
+    try {
+      const validatedData = gurmatCampSchema.parse(req.body);
+      
+      // Check if email already exists
+      const existingRegistration = await storage.getGurmatCampRegistrationByEmail(validatedData.email);
+      if (existingRegistration) {
+        return res.status(400).json({ message: "Registration failed: email already exists" });
+      }
+      
+      const registration = await storage.createGurmatCampRegistration(validatedData);
+      res.status(201).json(registration);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ message: fromZodError(error).message });
+      } else {
+        console.error("Error creating gurmat camp registration:", error);
+        res.status(500).json({ 
+          message: error instanceof Error ? error.message : "Internal Server Error" 
+        });
+      }
+    }
+  });
+
+  app.get("/api/gurmat-camp", authenticate, requireAdmin, async (_req, res) => {
+    try {
+      const registrations = await storage.getAllGurmatCampRegistrations();
+      res.json(registrations);
+    } catch (error) {
+      console.error("Error fetching gurmat camp registrations:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

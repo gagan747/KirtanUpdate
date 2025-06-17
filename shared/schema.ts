@@ -66,6 +66,20 @@ export const liveBroadcasts = pgTable("live_broadcasts", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Gurmat Camp Registration Schema
+export const gurmatCampRegistrations = pgTable("gurmat_camp_registrations", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  age: text("age").notNull(),
+  gender: text("gender").notNull(),
+  address: text("address").notNull(),
+  fatherName: text("father_name").notNull(),
+  motherName: text("mother_name").notNull(),
+  contactNumber: text("contact_number").notNull(),
+  email: text("email").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -136,3 +150,6 @@ export type InsertFcmToken = z.infer<typeof insertFcmTokenSchema>;
 export type FcmToken = typeof fcmTokens.$inferSelect;
 export type LiveBroadcast = typeof liveBroadcasts.$inferSelect;
 export type InsertLiveBroadcast = typeof liveBroadcasts.$inferInsert;
+
+export type GurmatCampRegistration = typeof gurmatCampRegistrations.$inferSelect;
+export type InsertGurmatCampRegistration = typeof gurmatCampRegistrations.$inferInsert;
