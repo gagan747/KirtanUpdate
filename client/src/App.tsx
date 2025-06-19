@@ -14,11 +14,14 @@ import GurmatCamp from "@/pages/gurmat-camp";
 import { AuthProvider } from "@/hooks/use-auth";
 import { SocketProvider } from "@/hooks/use-socket";
 import { ProtectedRoute } from "./lib/protected-route";
+import { SplashScreen } from "@/components/splash-screen";
+import { BackgroundMusic } from "@/components/background-music";
+import { useState } from "react";
 
 function Router() {
   return (
     <Switch>
-      {/* Make homepage public */}
+      {/* Restore original homepage */}
       <Route path="/" component={HomePage} />
       <Route path="/samagam/:id" component={SamagamDetails} />
       <Route path="/recorded-samagams" component={RecordedSamagamsPage} />
@@ -33,15 +36,26 @@ function Router() {
 }
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <SocketProvider>
-          <Router />
-          <Toaster />
-        </SocketProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <>
+      {/* Background music starts immediately and plays throughout the app */}
+      <BackgroundMusic />
+      
+      {showSplash ? (
+        <SplashScreen onFinish={() => setShowSplash(false)} />
+      ) : (
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <SocketProvider>
+              <Router />
+              <Toaster />
+            </SocketProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      )}
+    </>
   );
 }
 
