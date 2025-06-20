@@ -20,6 +20,9 @@ import {
   type GurmatCampRegistration,
   type InsertGurmatCampRegistration,
   gurmatCampRegistrations,
+  type Media,
+  type InsertMedia,
+  media,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, desc } from "drizzle-orm";
@@ -49,6 +52,12 @@ export interface IStorage {
   createGurmatCampRegistration(data: InsertGurmatCampRegistration): Promise<GurmatCampRegistration>;
   getGurmatCampRegistrationByEmail(email: string): Promise<GurmatCampRegistration | undefined>;
   getAllGurmatCampRegistrations(): Promise<GurmatCampRegistration[]>;
+
+  // Media operations
+  getPaginatedMedia(limit: number, offset: number): Promise<{ media: Media[]; total: number }>;
+  createMedia(insertMedia: InsertMedia, userId: number): Promise<Media>;
+  updateMedia(id: number, updateMedia: InsertMedia): Promise<Media | undefined>;
+  deleteMedia(id: number): Promise<boolean>;
 
   // Other methods...
 }
@@ -385,6 +394,65 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(gurmatCampRegistrations)
       .orderBy(desc(gurmatCampRegistrations.createdAt));
+  }
+
+  // Media operations
+  async getPaginatedMedia(
+    limit: number,
+    offset: number,
+  ): Promise<{ media: Media[]; total: number }> {
+    const results = await db
+      .select()
+      .from(media)
+      .orderBy(desc(media.createdAt))
+      .limit(limit)
+      .offset(offset);
+    const [countResult] = await db.select({ count: count() }).from(media);
+    return {
+      media: results,
+      total: Number(countResult.count),
+    };
+  }
+
+  async createMedia(insertMedia: InsertMedia, userId: number): Promise<Media> {
+    const [mediaItem] = await db
+      .insert(media)
+      .values({
+        title: insertMedia.title,
+        description: insertMedia.description,
+        driveUrl: insertMedia.driveUrl,
+        mediaType: insertMedia.mediaType,
+        date: insertMedia.date,
+        addedBy: userId,
+      })
+      .returning();
+    return mediaItem;
+  }
+
+  async updateMedia(
+    id: number,
+    updateMedia: InsertMedia,
+  ): Promise<Media | undefined> {
+    const [mediaItem] = await db
+      .update(media)
+      .set({
+        title: updateMedia.title,
+        description: updateMedia.description,
+        driveUrl: updateMedia.driveUrl,
+        mediaType: updateMedia.mediaType,
+        date: updateMedia.date,
+      })
+      .where(eq(media.id, id))
+      .returning();
+    return mediaItem;
+  }
+
+  async deleteMedia(id: number): Promise<boolean> {
+    const [deleted] = await db
+      .delete(media)
+      .where(eq(media.id, id))
+      .returning();
+    return !!deleted;
   }
 }
 

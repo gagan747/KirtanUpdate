@@ -10,12 +10,15 @@ import {
   Utensils,
   Radio,
   BookOpen,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { motion, Variants } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface MobileNavProps {
   onClose?: () => void;
@@ -31,6 +34,14 @@ export function MobileNav({ onClose }: MobileNavProps) {
   const { user, logoutMutation } = useAuth();
   const [location] = useLocation();
   const [activeHover, setActiveHover] = useState<string | null>(null);
+  const [isEventsOpen, setIsEventsOpen] = useState(false);
+
+  // Auto-open events if on gurmat-camp page
+  useEffect(() => {
+    if (location === "/gurmat-camp") {
+      setIsEventsOpen(true);
+    }
+  }, [location]);
 
   const handleLinkClick = () => {
     if (onClose) {
@@ -50,9 +61,14 @@ export function MobileNav({ onClose }: MobileNavProps) {
       label: "Recorded Samagams",
     },
     {
-      href: "/gurmat-camp",
-      icon: <BookOpen className="mr-2 h-4 w-4 flex-shrink-0" />,
-      label: "Gurmat Camp",
+      href: "/media",
+      icon: <Video className="mr-2 h-4 w-4 flex-shrink-0" />,
+      label: "Media",
+    },
+    {
+      href: "/calendar",
+      icon: <Calendar className="mr-2 h-4 w-4 flex-shrink-0" />,
+      label: "Calendar",
     },
     /* Locations tab commented out
     {
@@ -109,7 +125,16 @@ export function MobileNav({ onClose }: MobileNavProps) {
         <div></div>
         <div className="flex items-center gap-3" >
           <div className="p-2 bg-primary-foreground/10 rounded-full flex-shrink-0">
-            <Music2 className="h-6 w-6 text-primary-foreground" />
+            <img 
+              src="/logo-icon.jpeg" 
+              alt="Logo Icon" 
+              className="h-6 w-6 rounded-full object-cover shadow-lg"
+              style={{
+                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+                transform: "translateZ(10px)",
+                background: "linear-gradient(145deg, rgba(255,255,255,0.4) 0%, rgba(0,0,0,0.1) 100%)"
+              }}
+            />
           </div>
           <h1 className="text-xl font-bold text-primary-foreground truncate">
             Kirtan Update
@@ -154,6 +179,84 @@ export function MobileNav({ onClose }: MobileNavProps) {
             </Link>
           </SheetClose>
         ))}
+
+        {/* Events Section with Dropdown */}
+        <motion.div variants={itemVariants}>
+          <motion.div
+            className={cn(
+              "flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer",
+              (isEventsOpen)
+                ? "bg-primary-foreground/20 text-primary-foreground shadow-inner"
+                : "text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10",
+            )}
+            onMouseEnter={() => setActiveHover("events")}
+            onMouseLeave={() => setActiveHover(null)}
+            whileHover={{
+              scale: 1.03,
+              transition: { duration: 0.2 },
+            }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              if (isEventsOpen && location !== "/gurmat-camp") {
+                // If dropdown is open but we're not on gurmat-camp, navigate to it
+                window.location.href = "/gurmat-camp";
+                if (onClose) {
+                  onClose();
+                }
+              } else {
+                // Toggle dropdown state
+                setIsEventsOpen(!isEventsOpen);
+              }
+            }}
+          >
+            <Calendar className="mr-2 h-4 w-4 flex-shrink-0" />
+            <span>Events</span>
+            <div className="ml-auto flex items-center gap-2">
+              {isEventsOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </div>
+          </motion.div>
+          
+          {/* Dropdown Content */}
+          {isEventsOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="ml-4 mt-2"
+            >
+              <SheetClose asChild>
+                <Link href="/gurmat-camp">
+                  <motion.div
+                    className={cn(
+                      "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                      location === "/gurmat-camp"
+                        ? "bg-primary-foreground/20 text-primary-foreground shadow-inner"
+                        : "text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10",
+                    )}
+                    whileHover={{
+                      scale: 1.02,
+                      transition: { duration: 0.2 },
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <BookOpen className="mr-2 h-4 w-4 flex-shrink-0" />
+                    <span>Gurmat Camp</span>
+                    {location === "/gurmat-camp" && (
+                      <motion.div
+                        className="ml-auto h-2 w-2 rounded-full bg-primary-foreground"
+                        layoutId="navIndicator"
+                      />
+                    )}
+                  </motion.div>
+                </Link>
+              </SheetClose>
+            </motion.div>
+          )}
+        </motion.div>
       </motion.nav>
 
       <motion.div

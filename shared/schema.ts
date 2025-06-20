@@ -80,6 +80,18 @@ export const gurmatCampRegistrations = pgTable("gurmat_camp_registrations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Media table (clone of recorded samagams but for Google Drive links)
+export const media = pgTable("media", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  driveUrl: text("drive_url").notNull(), // Google Drive public link
+  mediaType: text("media_type").notNull(), // 'image' or 'video'
+  date: timestamp("date").notNull(),
+  addedBy: integer("added_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -137,6 +149,29 @@ export const insertFcmTokenSchema = createInsertSchema(fcmTokens).pick({
   token: true,
 });
 
+export const insertMediaSchema = createInsertSchema(media, {
+  title: (fieldSchema) =>
+    fieldSchema.min(1, { message: "Title cannot be empty" }),
+  description: (fieldSchema) =>
+    fieldSchema.min(1, { message: "Description cannot be empty" }),
+  driveUrl: (fieldSchema) =>
+    fieldSchema.min(1, { message: "Google Drive URL cannot be empty" }),
+  mediaType: (fieldSchema) =>
+    fieldSchema.refine((val) => val === 'image' || val === 'video', {
+      message: "Media type must be either 'image' or 'video'",
+    }),
+})
+  .pick({
+    title: true,
+    description: true,
+    driveUrl: true,
+    mediaType: true,
+    date: true,
+  })
+  .extend({
+    date: z.coerce.date(),
+  });
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -153,3 +188,6 @@ export type InsertLiveBroadcast = typeof liveBroadcasts.$inferInsert;
 
 export type GurmatCampRegistration = typeof gurmatCampRegistrations.$inferSelect;
 export type InsertGurmatCampRegistration = typeof gurmatCampRegistrations.$inferInsert;
+
+export type Media = typeof media.$inferSelect;
+export type InsertMedia = z.infer<typeof insertMediaSchema>;

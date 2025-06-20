@@ -1,14 +1,18 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Volume2, VolumeX } from 'lucide-react';
 
 export function BackgroundMusic() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const hiddenButtonRef = useRef<HTMLButtonElement>(null);
+  const [isMuted, setIsMuted] = useState(true);
 
   useEffect(() => {
     const audio = audioRef.current;
     const hiddenButton = hiddenButtonRef.current;
     if (!audio || !hiddenButton) return;
 
+    // Mute audio initially to allow autoplay
+    audio.muted = true;
     // Set audio properties for continuous background play
     audio.loop = true;
     audio.volume = 0.3; // Set to 30% volume by default
@@ -109,7 +113,7 @@ export function BackgroundMusic() {
         document.addEventListener('mousemove', handleUserInteraction, { passive: true });
       }
     }, 1000);
-
+   
     return () => {
       // Cleanup
       document.removeEventListener('click', handleUserInteraction);
@@ -123,7 +127,23 @@ export function BackgroundMusic() {
         audio.currentTime = 0;
       }
     };
+   
   }, []);
+
+  const toggleMute = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isMuted) {
+      audio.muted = false;
+      setIsMuted(false);
+      console.log('🔊 Background music unmuted');
+    } else {
+      audio.muted = true;
+      setIsMuted(true);
+      console.log('🔇 Background music muted');
+    }
+  };
 
   return (
     <>
@@ -131,6 +151,19 @@ export function BackgroundMusic() {
         <source src="/logo.mp3" type="audio/mpeg" />
         Your browser does not support the audio element.
       </audio>
+      
+      {/* Volume control button */}
+      <button
+        onClick={toggleMute}
+        className="fixed bottom-4 right-4 z-50 bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+        title={isMuted ? "Unmute background music" : "Mute background music"}
+      >
+        {isMuted ? (
+          <VolumeX className="w-6 h-6" />
+        ) : (
+          <Volume2 className="w-6 h-6" />
+        )}
+      </button>
       
       {/* Hidden button for programmatic click trick */}
       <button 
@@ -151,4 +184,4 @@ export function BackgroundMusic() {
       </button>
     </>
   );
-} 
+}

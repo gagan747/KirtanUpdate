@@ -13,11 +13,15 @@ import {
   ChevronRight,
   Radio,
   BookOpen,
+  Camera,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "./mobile-nav";
 import { motion } from "framer-motion";
@@ -82,6 +86,15 @@ function Sidebar({
 }) {
   const { user, logoutMutation } = useAuth();
   const isMobile = useIsMobile();
+  const [location] = useLocation();
+  const [isEventsOpen, setIsEventsOpen] = useState(false);
+
+  // Auto-open events if on gurmat-camp page
+  useEffect(() => {
+    if (location === "/gurmat-camp") {
+      setIsEventsOpen(true);
+    }
+  }, [location]);
 
   return (
     <div
@@ -92,7 +105,16 @@ function Sidebar({
       <div className="flex items-center justify-between mb-8 sm:mb-10 w-full">
         <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
           <div className="p-2 bg-primary-foreground/10 rounded-full flex-shrink-0">
-            <Music2 className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
+            <img 
+              src="/logo-icon.jpeg" 
+              alt="Logo Icon" 
+              className="h-5 w-5 sm:h-6 sm:w-6 rounded-full object-cover shadow-lg"
+              style={{
+                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+                transform: "translateZ(10px)",
+                background: "linear-gradient(145deg, rgba(255,255,255,0.4) 0%, rgba(0,0,0,0.1) 100%)"
+              }}
+            />
           </div>
           {!isCollapsed && (
             <motion.h1
@@ -141,14 +163,88 @@ function Sidebar({
             )}
           </div>
         </NavLink>
-        <NavLink href="/gurmat-camp" isCollapsed={isCollapsed}>
+        <NavLink href="/media" isCollapsed={isCollapsed}>
           <div className="flex items-center">
-            <BookOpen className="mr-2 h-4 w-4 flex-shrink-0" />
+            <Video className="mr-2 h-4 w-4 flex-shrink-0" />
             {!isCollapsed && (
-              <span className="whitespace-nowrap">Gurmat Camp</span>
+              <span className="whitespace-nowrap">Media</span>
             )}
           </div>
         </NavLink>
+        <NavLink href="/calendar" isCollapsed={isCollapsed}>
+          <div className="flex items-center">
+            <Calendar className="mr-2 h-4 w-4 flex-shrink-0" />
+            {!isCollapsed && (
+              <span className="whitespace-nowrap">Calendar</span>
+            )}
+          </div>
+        </NavLink>
+        
+        {/* Events Section with Dropdown */}
+        <div className="mb-3">
+          <motion.div
+            className={cn(
+              "block transition-all duration-200 cursor-pointer rounded-lg",
+              "text-primary-foreground/80 hover:text-primary-foreground",
+              (isEventsOpen) &&
+                "text-primary-foreground font-medium bg-primary-foreground/10 shadow-inner",
+            )}
+            style={{ minWidth: isCollapsed ? "auto" : "180px" }}
+            whileHover={{
+              scale: 1.02,
+              transition: { duration: 0.2 },
+            }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              if (isEventsOpen && location !== "/gurmat-camp") {
+                // If dropdown is open but we're not on gurmat-camp, navigate to it
+                window.location.href = "/gurmat-camp";
+              } else {
+                // Toggle dropdown state
+                setIsEventsOpen(!isEventsOpen);
+              }
+            }}
+          >
+            <div className="px-3 py-2 flex items-center">
+              <Calendar className="mr-2 h-4 w-4 flex-shrink-0" />
+              {!isCollapsed && (
+                <>
+                  <span className="whitespace-nowrap">Events</span>
+                  <div className="ml-auto">
+                    {isEventsOpen ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </motion.div>
+          
+          {/* Dropdown Content */}
+          {isEventsOpen && !isCollapsed && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="ml-6 mt-2"
+            >
+              <NavLink href="/gurmat-camp" isCollapsed={false}>
+                <div className="flex items-center">
+                  <BookOpen className="mr-2 h-4 w-4 flex-shrink-0" />
+                  <span className="whitespace-nowrap">Gurmat Camp</span>
+                  {location === "/gurmat-camp" && (
+                    <motion.div
+                      className="ml-auto h-2 w-2 rounded-full bg-primary-foreground"
+                      layoutId="sidebarIndicator"
+                    />
+                  )}
+                </div>
+              </NavLink>
+            </motion.div>
+          )}
+        </div>
         {/* Locations tab commented out
         <NavLink href="/locations" isCollapsed={isCollapsed}>
           <div className="flex items-center">
@@ -272,7 +368,16 @@ export default function Layout({ children }: LayoutProps) {
                   transition={{ duration: 0.3 }}
                 >
                   <div className="p-1.5 bg-primary/10 rounded-full flex-shrink-0">
-                    <Music2 className="h-5 w-5 sm:h-5 sm:w-5 text-primary" />
+                    <img 
+                      src="/logo-icon.jpeg" 
+                      alt="Logo Icon" 
+                      className="h-5 w-5 sm:h-5 sm:w-5 rounded-full object-cover shadow-lg"
+                      style={{
+                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+                        transform: "translateZ(10px)",
+                        background: "linear-gradient(145deg, rgba(255,255,255,0.4) 0%, rgba(0,0,0,0.1) 100%)"
+                      }}
+                    />
                   </div>
                   <h1 className="text-lg sm:text-xl font-semibold text-primary">
                     Kirtan Update

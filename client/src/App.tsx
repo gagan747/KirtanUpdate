@@ -11,6 +11,8 @@ import LocationsPage from "@/pages/locations";
 import LangarSewaPage from "@/pages/langar-sewa";
 import BroadcastPage from "@/pages/broadcast";
 import GurmatCamp from "@/pages/gurmat-camp";
+import MediaPage from "@/pages/media-page";
+import CalendarPage from "@/pages/calendar-page";
 import { AuthProvider } from "@/hooks/use-auth";
 import { SocketProvider } from "@/hooks/use-socket";
 import { ProtectedRoute } from "./lib/protected-route";
@@ -25,6 +27,8 @@ function Router() {
       <Route path="/" component={HomePage} />
       <Route path="/samagam/:id" component={SamagamDetails} />
       <Route path="/recorded-samagams" component={RecordedSamagamsPage} />
+      <Route path="/media" component={MediaPage} />
+      <Route path="/calendar" component={CalendarPage} />
       <Route path="/gurmat-camp" component={GurmatCamp} />
       <Route path="/locations" component={LocationsPage} />
       <Route path="/langar-sewa" component={LangarSewaPage} />

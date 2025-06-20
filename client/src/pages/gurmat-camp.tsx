@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,6 +7,19 @@ import { apiRequest } from "@/lib/queryClient";
 import { motion } from "framer-motion";
 import Layout from "@/components/layout";
 import { z } from "zod";
+import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Download } from "lucide-react";
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+
+// Fix for TypeScript to recognize jspdf-autotable
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+  }
+}
 
 // Form validation schema
 const formSchema = z.object({
@@ -22,8 +35,485 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
+// Registration type for admin view
+interface Registration {
+  id: number;
+  name: string;
+  age: string;
+  gender: string;
+  address: string;
+  fatherName: string;
+  motherName: string;
+  contactNumber: string;
+  email: string;
+  createdAt: string;
+}
+
+// Admin component for exporting registrations
+function AdminExportButton() {
+  const { toast } = useToast();
+  const [isExporting, setIsExporting] = useState(false);
+  
+  // Use query to fetch registrations
+  const { data: registrations, isLoading, error } = useQuery({
+    queryKey: ["gurmatCampRegistrations"],
+    queryFn: async () => {
+      try {
+        const response = await fetch("/api/gurmat-camp", {
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch registrations: ${response.status}`);
+        }
+        
+        return response.json() as Promise<Registration[]>;
+      } catch (error) {
+        console.error("Error fetching registrations:", error);
+        throw error;
+      }
+    }
+  });
+  
+  const handleExportPDF = () => {
+    if (!registrations || registrations.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "There are no registrations to export.",
+      });
+      return;
+    }
+
+    setIsExporting(true);
+    
+    try {
+      console.log("Starting PDF generation...");
+      
+      // Initialize PDF document with explicit font
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      // Try to catch specific errors
+      try {
+        // Add title
+        doc.setFont("helvetica");
+        doc.setFontSize(18);
+       // doc.text("Gurmat Camp Registrations", 14, 22);
+        
+        // Add date
+        doc.setFontSize(11);
+       // doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
+        
+        console.log("Added title and date");
+        
+        // Simple table data
+        const tableColumn = ["Name", "Age", "Gender", "Contact", "Email", "Registration Date"];
+        const tableRows = registrations.map(reg => [
+          reg.name,
+          reg.age,
+          reg.gender,
+          reg.contactNumber,
+          reg.email,
+          new Date(reg.createdAt).toLocaleDateString()
+        ]);
+        
+        console.log("Prepared table data", tableRows.length);
+        
+        // Generate the table with simpler options
+        doc.autoTable({
+          head: [tableColumn],
+          body: tableRows,
+          startY: 40,
+          theme: 'grid'
+        });
+        
+        console.log("Generated table");
+      } catch (innerError) {
+        console.error("Error in PDF generation steps:", innerError);
+        
+        // Fallback to extremely simple PDF if table generation failed
+        doc.setFont("helvetica");
+        doc.setFontSize(12);
+        doc.text("Gurmat Camp Registrations", 20, 20);
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
+        doc.text(`Total registrations: ${registrations.length}`, 20, 40);
+        
+        let yPos = 50;
+        registrations.forEach((reg, i) => {
+          doc.text(`${i+1}. ${reg.name} (${reg.age}, ${reg.gender}), Contact: ${reg.contactNumber}`, 20, yPos);
+          yPos += 10;
+          if (yPos > 280) { // Add a new page if we're near the bottom
+            doc.addPage();
+            yPos = 20;
+          }
+        });
+      }
+      
+      // Save the PDF
+      doc.save("gurmat-camp-registrations.pdf");
+      console.log("PDF saved");
+      
+      toast({
+        title: "Export Successful",
+        description: "PDF has been generated and downloaded.",
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      
+      // Fallback to CSV export if PDF fails completely
+      try {
+        console.log("Falling back to CSV export");
+        const csvContent = "data:text/csv;charset=utf-8," + 
+          "Name,Age,Gender,Address,Father Name,Mother Name,Contact,Email,Registration Date\n" +
+          registrations.map(reg => {
+            return `"${reg.name}","${reg.age}","${reg.gender}","${reg.address}","${reg.fatherName}","${reg.motherName}","${reg.contactNumber}","${reg.email}","${new Date(reg.createdAt).toLocaleDateString()}"`;
+          }).join("\n");
+          
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "gurmat-camp-registrations.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast({
+          title: "Export Successful",
+          description: "CSV has been generated and downloaded (PDF generation failed).",
+        });
+      } catch (csvError) {
+        console.error("CSV fallback also failed:", csvError);
+        toast({
+          title: "Export Failed",
+          description: `Failed to generate export: ${error instanceof Error ? error.message : "Unknown error"}`,
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  return (
+    <div className="mt-8 mb-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Gurmat Camp Registrations</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <p className="text-muted-foreground">Export all registration data as a PDF file.</p>
+            <Button 
+              onClick={handleExportPDF} 
+              disabled={isExporting || isLoading || !!error}
+            >
+              {isExporting ? (
+                <>
+                  <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                  Exporting...
+                </>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Download className="mr-2 h-4 w-7 flex justify-center"/>
+                  PDF
+                </div>
+              )}
+            </Button>
+          </div>
+          {error && (
+            <p className="text-red-500 text-sm mt-2">Error loading data: {error instanceof Error ? error.message : "Unknown error"}</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Admin component for viewing and exporting registrations
+function AdminRegistrationsView() {
+  const { toast } = useToast();
+  const [isExporting, setIsExporting] = useState(false);
+  
+  // Fetch registrations
+  const { data: registrations, isLoading, error, refetch } = useQuery({
+    queryKey: ["gurmatCampRegistrations"],
+    queryFn: async () => {
+      try {
+        const response = await fetch("/api/gurmat-camp", {
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch registrations: ${response.status}`);
+        }
+        
+        return response.json() as Promise<Registration[]>;
+      } catch (error) {
+        console.error("Error fetching registrations:", error);
+        throw error;
+      }
+    }
+  });
+
+  const handleExportPDF = () => {
+    if (!registrations || registrations.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "There are no registrations to export.",
+      });
+      return;
+    }
+
+    setIsExporting(true);
+    
+    try {
+      console.log("Starting PDF generation...");
+      
+      // Initialize PDF document with explicit font
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      // Try to catch specific errors
+      try {
+        // Add title
+        doc.setFont("helvetica");
+        doc.setFontSize(18);
+       // doc.text("Gurmat Camp Registrations", 14, 22);
+        
+        // Add date
+        doc.setFontSize(11);
+       // doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
+        
+        console.log("Added title and date");
+        
+        // Simple table data
+        const tableColumn = ["Name", "Age", "Gender", "Contact", "Email", "Registration Date"];
+        const tableRows = registrations.map(reg => [
+          reg.name,
+          reg.age,
+          reg.gender,
+          reg.contactNumber,
+          reg.email,
+          new Date(reg.createdAt).toLocaleDateString()
+        ]);
+        
+        console.log("Prepared table data", tableRows.length);
+        
+        // Generate the table with simpler options
+        doc.autoTable({
+          head: [tableColumn],
+          body: tableRows,
+          startY: 40,
+          theme: 'grid'
+        });
+        
+        console.log("Generated table");
+      } catch (innerError) {
+        console.error("Error in PDF generation steps:", innerError);
+        
+        // Fallback to extremely simple PDF if table generation failed
+        doc.setFont("helvetica");
+        doc.setFontSize(12);
+        doc.text("Gurmat Camp Registrations", 20, 20);
+        // doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
+        doc.text(`Total registrations: ${registrations.length}`, 20, 40);
+        
+        let yPos = 50;
+        registrations.forEach((reg, i) => {
+          doc.text(`${i+1}. ${reg.name} (${reg.age}, ${reg.gender}), Contact: ${reg.contactNumber}`, 20, yPos);
+          yPos += 10;
+          if (yPos > 280) { // Add a new page if we're near the bottom
+            doc.addPage();
+            yPos = 20;
+          }
+        });
+      }
+      
+      // Save the PDF
+      doc.save("gurmat-camp-registrations.pdf");
+      console.log("PDF saved");
+      
+      toast({
+        title: "Export Successful",
+        description: "PDF has been generated and downloaded.",
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      
+      // Fallback to CSV export if PDF fails completely
+      try {
+        console.log("Falling back to CSV export");
+        const csvContent = "data:text/csv;charset=utf-8," + 
+          "Name,Age,Gender,Address,Father Name,Mother Name,Contact,Email,Registration Date\n" +
+          registrations.map(reg => {
+            return `"${reg.name}","${reg.age}","${reg.gender}","${reg.address}","${reg.fatherName}","${reg.motherName}","${reg.contactNumber}","${reg.email}","${new Date(reg.createdAt).toLocaleDateString()}"`;
+          }).join("\n");
+          
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "gurmat-camp-registrations.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast({
+          title: "Export Successful",
+          description: "CSV has been generated and downloaded (PDF generation failed).",
+        });
+      } catch (csvError) {
+        console.error("CSV fallback also failed:", csvError);
+        toast({
+          title: "Export Failed",
+          description: `Failed to generate export: ${error instanceof Error ? error.message : "Unknown error"}`,
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="mt-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Gurmat Camp Registrations</span>
+              <Button disabled variant="outline" size="sm">
+                <Download className="mr-2 h-4 w-4" />
+                Export PDF
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="h-8 bg-gray-200 rounded animate-pulse" />
+              <div className="h-8 bg-gray-200 rounded animate-pulse" />
+              <div className="h-8 bg-gray-200 rounded animate-pulse" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mt-8">
+        <Card className="border-red-200">
+          <CardHeader>
+            <CardTitle className="text-red-500">Error Loading Registrations</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Failed to load registrations. Please try again later.</p>
+            <p className="text-xs text-muted-foreground mt-2">{error instanceof Error ? error.message : "Unknown error"}</p>
+            <div className="flex space-x-2 mt-4">
+              <Button 
+                onClick={() => refetch()} 
+                variant="outline" 
+                size="sm"
+              >
+                Retry
+              </Button>
+              <Button 
+                onClick={handleExportPDF} 
+                variant="outline" 
+                size="sm"
+                disabled={isExporting}
+              >
+                {isExporting ? (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2"/>
+                ) : (
+                  <Download className="mr-2 h-4 w-4" />
+                )}
+                Export PDF
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-8">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Gurmat Camp Registrations ({registrations?.length || 0})</span>
+            <Button 
+              onClick={handleExportPDF} 
+              variant="outline" 
+              size="sm"
+              disabled={isExporting}
+            >
+              {isExporting ? (
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2"/>
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              Export PDF
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {registrations && registrations.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="py-2 px-3 text-left">Name</th>
+                    <th className="py-2 px-3 text-left">Age</th>
+                    <th className="py-2 px-3 text-left">Gender</th>
+                    <th className="py-2 px-3 text-left">Contact</th>
+                    <th className="py-2 px-3 text-left">Email</th>
+                    <th className="py-2 px-3 text-left">Registration Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {registrations.map((reg) => (
+                    <tr key={reg.id} className="border-b hover:bg-gray-50">
+                      <td className="py-2 px-3">{reg.name}</td>
+                      <td className="py-2 px-3">{reg.age}</td>
+                      <td className="py-2 px-3">{reg.gender}</td>
+                      <td className="py-2 px-3">{reg.contactNumber}</td>
+                      <td className="py-2 px-3">{reg.email}</td>
+                      <td className="py-2 px-3">
+                        {new Date(reg.createdAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-center py-4 text-muted-foreground">No registrations yet.</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function GurmatCamp() {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isAdmin = user?.isAdmin || false;
+  
   const [formData, setFormData] = useState<FormData>({
     name: "",
     age: "",
@@ -109,11 +599,14 @@ export default function GurmatCamp() {
     <Layout>
       <div className="container mx-auto py-4 px-2 sm:py-10 sm:px-6">
         <div className="max-w-4xl mx-auto">
+          {/* Admin View */}
+          {isAdmin && <AdminExportButton />}
+          
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="bg-white rounded-lg shadow-lg overflow-hidden"
+            className="bg-white rounded-lg shadow-lg overflow-hidden mt-8"
           >
             {/* Header with Images */}
             <div className="relative bg-amber-100 px-4 py-6 sm:p-8 text-center border-b">
@@ -282,7 +775,7 @@ export default function GurmatCamp() {
                 
                 <div className="mt-4 sm:mt-6">
                   <h3 className="text-base sm:text-lg font-bold">Contact for more details</h3>
-                  <p className="text-sm sm:text-lg">7017773924, 9456590113, 7060050630</p>
+                  <p className="text-sm sm:text-lg">7017773924, 9837557170, 7060050630</p>
                 </div>
               </div>
               
@@ -302,4 +795,4 @@ export default function GurmatCamp() {
       </div>
     </Layout>
   );
-} 
+}

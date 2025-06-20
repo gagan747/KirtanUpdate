@@ -167,6 +167,8 @@ app.use((req, res, next) => {
   //   log(`Failed to initialize Firebase Admin SDK: ${error instanceof Error ? error.message : String(error)}`);
   // }
 
+  // IMPORTANT: Register API routes BEFORE setting up Vite middleware
+  // This ensures API routes take precedence over Vite's catch-all route
   await registerRoutes(app);
 
   // Initialize samagam cleanup scheduler
@@ -203,10 +205,19 @@ app.use((req, res, next) => {
     throw err;
   });
 
+  // Add a specific API route handler to ensure API routes are not caught by Vite
+  app.use('/api', (req, res, next) => {
+    // If we reach here, it means no API route matched
+    // This prevents Vite from handling API routes
+    if (!res.headersSent) {
+      return res.status(404).json({ message: `API endpoint not found: ${req.path}` });
+    }
+    next();
+  });
+
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {

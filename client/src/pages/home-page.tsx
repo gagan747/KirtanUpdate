@@ -420,9 +420,9 @@ export default function HomePage() {
             )}
             </div>
             <div className="flex items-center gap-3">
-              <p className="text-muted-foreground">
+              {/* <p className="text-muted-foreground">
                 Find upcoming kirtan samagams and events
-              </p>
+              </p> */}
               <LiveBroadcastIndicator />
             </div>
           </div>

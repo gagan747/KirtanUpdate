@@ -5,6 +5,7 @@ import {
   insertSamagamSchema,
   insertRecordedSamagamSchema,
   insertLocationSchema,
+  insertMediaSchema,
   users,
 } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
@@ -470,6 +471,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching gurmat camp registrations:", error);
       res.status(500).json({ message: "Internal Server Error" });
     }
+  });
+
+  // Export gurmat camp registrations as PDF for admin
+  app.get("/api/gurmat-camp/", authenticate, requireAdmin, async (_req, res) => {
+    try {
+      const registrations = await storage.getAllGurmatCampRegistrations();
+      
+      // Set headers for file download
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', 'attachment; filename="gurmat-camp-registrations.json"');
+      
+      // Return JSON data for download
+      res.json({
+        exportDate: new Date().toISOString(),
+        totalRegistrations: registrations.length,
+        registrations: registrations.map(reg => ({
+          name: reg.name,
+          age: reg.age,
+          gender: reg.gender,
+          address: reg.address,
+          fatherName: reg.fatherName,
+          motherName: reg.motherName,
+          contactNumber: reg.contactNumber,
+          email: reg.email,
+          registrationDate: reg.createdAt
+        }))
+      });
+    } catch (error) {
+      console.error("Error exporting gurmat camp registrations:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  });
+
+  // Media routes (clone of recorded samagams)
+  app.get("/api/media", async (req, res) => {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 12;
+    const offset = (page - 1) * limit;
+
+    try {
+      const { media, total } = await storage.getPaginatedMedia(limit, offset);
+      res.json({
+        media,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching media:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Internal Server Error",
+      });
+    }
+  });
+
+  app.post("/api/media", authenticate, requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertMediaSchema.parse({
+        ...req.body,
+        ...(req?.body?.date ? { date: new Date(req.body.date) } : {}),
+      });
+      const media = await storage.createMedia(validatedData, req.user!.id);
+      res.status(201).json(media);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ message: fromZodError(error).message });
+      } else {
+        console.error("Error creating media:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+      }
+    }
+  });
+
+  app.patch("/api/media/:id", authenticate, requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertMediaSchema.parse({
+        ...req.body,
+        ...(req?.body?.date ? { date: new Date(req.body.date) } : {}),
+      });
+      const media = await storage.updateMedia(parseInt(req.params.id), validatedData);
+      if (!media) return res.status(404).json({ message: "Media not found" });
+      res.json(media);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ message: fromZodError(error).message });
+      } else {
+        console.error("Error updating media:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+      }
+    }
+  });
+
+  app.delete("/api/media/:id", authenticate, requireAdmin, async (req, res) => {
+    const deleted = await storage.deleteMedia(parseInt(req.params.id));
+    if (!deleted) return res.status(404).json({ message: "Media not found" });
+    res.status(204).send();
   });
 
   const httpServer = createServer(app);
