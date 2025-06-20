@@ -122,7 +122,7 @@ function Sidebar({
               animate={{ opacity: 1 }}
               className="text-xl sm:text-2xl font-bold text-primary-foreground truncate"
             >
-              Kirtan Update
+              KIRTAN UPDATE
             </motion.h1>
           )}
         </div>
@@ -380,7 +380,7 @@ export default function Layout({ children }: LayoutProps) {
                     />
                   </div>
                   <h1 className="text-lg sm:text-xl font-semibold text-primary">
-                    Kirtan Update
+                    KIRTAN UPDATE
                   </h1>
                 </motion.div>
               </div>

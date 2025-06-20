@@ -381,7 +381,7 @@ export default function HomePage() {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2 justify-between">
             <h1 className="text-3xl font-bold tracking-tight mb-2">
-              Upcoming Samagams
+              UPCOMING SAMAGAMS
             </h1>
              {!user?.isAdmin && (
               <div className="flex items-center gap-2">

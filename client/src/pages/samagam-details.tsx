@@ -76,7 +76,7 @@ export default function SamagamDetails() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: samagam?.title || "Kirtan Update",
+          title: samagam?.title || "KIRTAN UPDATE",
           text: `Join us for ${samagam?.title} on ${format(new Date(samagam?.date || new Date()), "MMMM d, yyyy")}`,
           url: window.location.href,
         });

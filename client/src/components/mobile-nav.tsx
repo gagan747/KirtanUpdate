@@ -137,7 +137,7 @@ export function MobileNav({ onClose }: MobileNavProps) {
             />
           </div>
           <h1 className="text-xl font-bold text-primary-foreground truncate">
-            Kirtan Update
+            KIRTAN UPDATE
           </h1>
         </div>
       </motion.div>

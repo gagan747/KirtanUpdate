@@ -54,7 +54,7 @@ export default function AuthPage() {
         <Card className="w-full max-w-md">
           <CardHeader className="pb-4 sm:pb-6">
             <CardTitle className="text-xl sm:text-2xl text-center">
-              Welcome to Kirtan Update
+              Welcome to KIRTAN UPDATE
             </CardTitle>
           </CardHeader>
           <CardContent>

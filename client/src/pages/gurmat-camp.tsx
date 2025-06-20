@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download } from "lucide-react";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { getToken } from "firebase/messaging";
 
 // Fix for TypeScript to recognize jspdf-autotable
 declare module 'jspdf' {
@@ -59,10 +60,12 @@ function AdminExportButton() {
     queryKey: ["gurmatCampRegistrations"],
     queryFn: async () => {
       try {
+          const token = localStorage.getItem("jwt_token");
         const response = await fetch("/api/gurmat-camp", {
           credentials: 'include',
           headers: {
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : ''
           }
         });
         
