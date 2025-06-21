@@ -39,6 +39,20 @@ function convertDriveUrl(url: string, mediaType: 'image' | 'video'): string {
   }
 }
 
+// Function to get direct Google Drive URL for opening in new window
+function getDirectDriveUrl(url: string): string {
+  try {
+    const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (match) {
+      const fileId = match[1];
+      return `https://drive.google.com/file/d/${fileId}/view`;
+    }
+    return url;
+  } catch {
+    return url;
+  }
+}
+
 // Media Card Component
 function MediaCard({ media, onEdit, onDelete, isAdmin }: {
   media: Media;
@@ -47,6 +61,15 @@ function MediaCard({ media, onEdit, onDelete, isAdmin }: {
   isAdmin: boolean;
 }) {
   const embedUrl = convertDriveUrl(media.driveUrl, media.mediaType);
+  const directUrl = getDirectDriveUrl(media.driveUrl);
+
+  const handleMediaClick = () => {
+    if (media.mediaType === 'video') {
+      // Open video in a new popup window
+      const windowFeatures = 'width=1024,height=768,scrollbars=yes,resizable=yes,toolbar=no,location=no,directories=no,status=no,menubar=no';
+      window.open(directUrl, '_blank', windowFeatures);
+    }
+  };
 
   return (
     <Card className="overflow-hidden">
@@ -57,6 +80,7 @@ function MediaCard({ media, onEdit, onDelete, isAdmin }: {
           allowFullScreen
           title={media.title}
           sandbox="allow-same-origin allow-scripts"
+          onClick={handleMediaClick}
         />
         <Badge 
           variant="secondary" 
@@ -307,4 +331,4 @@ export default function MediaPage() {
       </div>
     </Layout>
   );
-} 
+}

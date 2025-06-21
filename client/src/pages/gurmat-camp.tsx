@@ -81,127 +81,220 @@ function AdminExportButton() {
     }
   });
   
-  const handleExportPDF = () => {
-    if (!registrations || registrations.length === 0) {
-      toast({
-        title: "No data to export",
-        description: "There are no registrations to export.",
-      });
-      return;
-    }
+const handleExportPDF = () => {
+  if (!registrations || registrations.length === 0) {
+    toast({
+      title: "No data to export",
+      description: "There are no registrations to export.",
+    });
+    return;
+  }
 
-    setIsExporting(true);
+  setIsExporting(true);
+  
+  try {
+    console.log("Starting PDF generation...");
+    
+    // Initialize PDF document
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
     
     try {
-      console.log("Starting PDF generation...");
+      // Add title
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      //doc.text("Gurmat Camp Registrations", 14, 22);
       
-      // Initialize PDF document with explicit font
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
+      // Add date
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+     // doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
+     // doc.text(`Total Registrations: ${registrations.length}`, 14, 35);
+      
+      console.log("Added title and date");
+      
+      // Define table columns with appropriate widths
+      const tableColumn = [
+        "Name", 
+        "Age", 
+        "Gender", 
+        "Contact", 
+        "Email", 
+        "Father Name",
+        "Address",
+        "Registration Date & Time"
+      ];
+      
+      // Prepare table data with text wrapping considerations
+      const tableRows = registrations.map(reg => [
+        reg.name || '',
+        reg.age || '',
+        reg.gender || '',
+        reg.contactNumber || '',
+        reg.email || '',
+        reg.fatherName || '',
+        reg.address || '',
+        reg.createdAt ? new Date(reg.createdAt).toLocaleString() : ''
+      ]);
+      
+      console.log("Prepared table data", tableRows.length);
+      
+      // Generate the table with proper column widths and text wrapping
+      doc.autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: 45,
+        theme: 'grid',
+        styles: {
+          fontSize: 8,
+          cellPadding: 2,
+          overflow: 'linebreak',
+          halign: 'left',
+          valign: 'top'
+        },
+        headStyles: {
+          fillColor: [41, 128, 185],
+          textColor: 255,
+          fontSize: 9,
+          fontStyle: 'bold'
+        },
+        columnStyles: {
+          0: { cellWidth: 25 }, // Name
+          1: { cellWidth: 12 }, // Age
+          2: { cellWidth: 15 }, // Gender
+          3: { cellWidth: 22 }, // Contact
+          4: { cellWidth: 35 }, // Email
+          5: { cellWidth: 25 }, // Father Name
+          6: { cellWidth: 35 }, // Address
+          7: { cellWidth: 25 }  // Registration Date & Time
+        },
+        margin: { left: 14, right: 14 },
+        pageBreak: 'auto',
+        showHead: 'everyPage',
+        didDrawPage: function (data) {
+          // Add page footer
+          doc.setFontSize(8);
+          doc.text(
+            `Page ${data.pageNumber}`, 
+            doc.internal.pageSize.width - 20, 
+            doc.internal.pageSize.height - 10
+          );
+        }
       });
       
-      // Try to catch specific errors
-      try {
-        // Add title
-        doc.setFont("helvetica");
-        doc.setFontSize(18);
-       // doc.text("Gurmat Camp Registrations", 14, 22);
-        
-        // Add date
-        doc.setFontSize(11);
-       // doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
-        
-        console.log("Added title and date");
-        
-        // Simple table data
-        const tableColumn = ["Name", "Age", "Gender", "Contact", "Email", "Registration Date"];
-        const tableRows = registrations.map(reg => [
-          reg.name,
-          reg.age,
-          reg.gender,
-          reg.contactNumber,
-          reg.email,
-          new Date(reg.createdAt).toLocaleDateString()
-        ]);
-        
-        console.log("Prepared table data", tableRows.length);
-        
-        // Generate the table with simpler options
-        doc.autoTable({
-          head: [tableColumn],
-          body: tableRows,
-          startY: 40,
-          theme: 'grid'
-        });
-        
-        console.log("Generated table");
-      } catch (innerError) {
-        console.error("Error in PDF generation steps:", innerError);
-        
-        // Fallback to extremely simple PDF if table generation failed
-        doc.setFont("helvetica");
-        doc.setFontSize(12);
-        doc.text("Gurmat Camp Registrations", 20, 20);
-        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
-        doc.text(`Total registrations: ${registrations.length}`, 20, 40);
-        
-        let yPos = 50;
-        registrations.forEach((reg, i) => {
-          doc.text(`${i+1}. ${reg.name} (${reg.age}, ${reg.gender}), Contact: ${reg.contactNumber}`, 20, yPos);
-          yPos += 10;
-          if (yPos > 280) { // Add a new page if we're near the bottom
-            doc.addPage();
-            yPos = 20;
-          }
-        });
-      }
+      console.log("Generated table");
       
-      // Save the PDF
-      doc.save("gurmat-camp-registrations.pdf");
-      console.log("PDF saved");
+    } catch (innerError) {
+      console.error("Error in PDF generation steps:", innerError);
+      
+      // Enhanced fallback with better formatting
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text("Gurmat Camp Registrations", 20, 20);
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
+      doc.text(`Total registrations: ${registrations.length}`, 20, 40);
+      
+      let yPos = 55;
+      const pageHeight = doc.internal.pageSize.height;
+      const margin = 20;
+      const lineHeight = 6;
+      
+      registrations.forEach((reg, i) => {
+        // Check if we need a new page
+        if (yPos > pageHeight - 40) {
+          doc.addPage();
+          yPos = 20;
+        }
+        
+        // Registration header
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.text(`${i + 1}. ${reg.name || 'N/A'}`, margin, yPos);
+        yPos += lineHeight;
+        
+        // Registration details
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        
+        const details = [
+          `Age: ${reg.age || 'N/A'}, Gender: ${reg.gender || 'N/A'}`,
+          `Contact: ${reg.contactNumber || 'N/A'}`,
+          `Email: ${reg.email || 'N/A'}`,
+          `Father: ${reg.fatherName || 'N/A'}`,
+          `Address: ${reg.address || 'N/A'}`,
+          `Registered: ${reg.createdAt ? new Date(reg.createdAt).toLocaleString() : 'N/A'}`
+        ];
+        
+        details.forEach(detail => {
+          // Handle long text by splitting if necessary
+          const maxWidth = doc.internal.pageSize.width - 2 * margin;
+          const textLines = doc.splitTextToSize(detail, maxWidth);
+          
+          textLines.forEach(line => {
+            if (yPos > pageHeight - 40) {
+              doc.addPage();
+              yPos = 20;
+            }
+            doc.text(line, margin + 5, yPos);
+            yPos += lineHeight;
+          });
+        });
+        
+        yPos += 3; // Extra space between registrations
+      });
+    }
+    
+    // Save the PDF
+    doc.save("gurmat-camp-registrations.pdf");
+    console.log("PDF saved");
+    
+    toast({
+      title: "Export Successful",
+      description: "PDF has been generated and downloaded.",
+    });
+    
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    
+    // Fallback to CSV export if PDF fails completely
+    try {
+      console.log("Falling back to CSV export");
+      const csvContent = "data:text/csv;charset=utf-8," + 
+        "Name,Age,Gender,Address,Father Name,Mother Name,Contact,Email,Registration Date & Time\n" +
+        registrations.map(reg => {
+          return `"${reg.name || ''}","${reg.age || ''}","${reg.gender || ''}","${reg.address || ''}","${reg.fatherName || ''}","${reg.motherName || ''}","${reg.contactNumber || ''}","${reg.email || ''}","${reg.createdAt ? new Date(reg.createdAt).toLocaleString() : ''}"`;
+        }).join("\n");
+        
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "gurmat-camp-registrations.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       
       toast({
         title: "Export Successful",
-        description: "PDF has been generated and downloaded.",
+        description: "CSV has been generated and downloaded (PDF generation failed).",
       });
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      
-      // Fallback to CSV export if PDF fails completely
-      try {
-        console.log("Falling back to CSV export");
-        const csvContent = "data:text/csv;charset=utf-8," + 
-          "Name,Age,Gender,Address,Father Name,Mother Name,Contact,Email,Registration Date\n" +
-          registrations.map(reg => {
-            return `"${reg.name}","${reg.age}","${reg.gender}","${reg.address}","${reg.fatherName}","${reg.motherName}","${reg.contactNumber}","${reg.email}","${new Date(reg.createdAt).toLocaleDateString()}"`;
-          }).join("\n");
-          
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "gurmat-camp-registrations.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        toast({
-          title: "Export Successful",
-          description: "CSV has been generated and downloaded (PDF generation failed).",
-        });
-      } catch (csvError) {
-        console.error("CSV fallback also failed:", csvError);
-        toast({
-          title: "Export Failed",
-          description: `Failed to generate export: ${error instanceof Error ? error.message : "Unknown error"}`,
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setIsExporting(false);
+    } catch (csvError) {
+      console.error("CSV fallback also failed:", csvError);
+      toast({
+        title: "Export Failed",
+        description: `Failed to generate export: ${error instanceof Error ? error.message : "Unknown error"}`,
+        variant: "destructive",
+      });
     }
-  };
+  } finally {
+    setIsExporting(false);
+  }
+};
 
   return (
     <div className="mt-8 mb-4">
@@ -266,128 +359,221 @@ function AdminRegistrationsView() {
       }
     }
   });
+const handleExportPDF = () => {
+  console.log('mmm');
+  if (!registrations || registrations.length === 0) {
+    toast({
+      title: "No data to export",
+      description: "There are no registrations to export.",
+    });
+    return;
+  }
 
-  const handleExportPDF = () => {
-    if (!registrations || registrations.length === 0) {
-      toast({
-        title: "No data to export",
-        description: "There are no registrations to export.",
-      });
-      return;
-    }
-
-    setIsExporting(true);
+  setIsExporting(true);
+  
+  try {
+    console.log("Starting PDF generation...");
+    
+    // Initialize PDF document
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
     
     try {
-      console.log("Starting PDF generation...");
+      // Add title
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.text("Gurmat Camp Registrations", 14, 22);
       
-      // Initialize PDF document with explicit font
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
+      // Add date
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
+      doc.text(`Total Registrations: ${registrations.length}`, 14, 35);
+      
+      console.log("Added title and date");
+      
+      // Define table columns with appropriate widths
+      const tableColumn = [
+        "Name", 
+        "Age", 
+        "Gender", 
+        "Contact", 
+        "Email", 
+        "Father Name",
+        "Address",
+        "Reg. Date"
+      ];
+      
+      // Prepare table data with text wrapping considerations
+      const tableRows = registrations.map(reg => [
+        reg.name || '',
+        reg.age || '',
+        reg.gender || '',
+        reg.contactNumber || '',
+        reg.email || '',
+        reg.fatherName || '',
+        reg.address || '',
+        reg.createdAt ? new Date(reg.createdAt).toLocaleDateString() : ''
+      ]);
+      
+      console.log("Prepared table data77", tableRows.length);
+      
+      // Generate the table with proper column widths and text wrapping
+      doc.autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: 45,
+        theme: 'grid',
+        styles: {
+          fontSize: 8,
+          cellPadding: 2,
+          overflow: 'linebreak',
+          halign: 'left',
+          valign: 'top'
+        },
+        headStyles: {
+          fillColor: [41, 128, 185],
+          textColor: 255,
+          fontSize: 9,
+          fontStyle: 'bold'
+        },
+        columnStyles: {
+          0: { cellWidth: 25 }, // Name
+          1: { cellWidth: 12 }, // Age
+          2: { cellWidth: 15 }, // Gender
+          3: { cellWidth: 22 }, // Contact
+          4: { cellWidth: 35 }, // Email
+          5: { cellWidth: 25 }, // Father Name
+          6: { cellWidth: 40 }, // Address
+          7: { cellWidth: 20 }  // Registration Date
+        },
+        margin: { left: 14, right: 14 },
+        pageBreak: 'auto',
+        showHead: 'everyPage',
+        didDrawPage: function (data) {
+          // Add page footer
+          doc.setFontSize(8);
+          doc.text(
+            `Page ${data.pageNumber}`, 
+            doc.internal.pageSize.width - 20, 
+            doc.internal.pageSize.height - 10
+          );
+        }
       });
       
-      // Try to catch specific errors
-      try {
-        // Add title
-        doc.setFont("helvetica");
-        doc.setFontSize(18);
-       // doc.text("Gurmat Camp Registrations", 14, 22);
-        
-        // Add date
-        doc.setFontSize(11);
-       // doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
-        
-        console.log("Added title and date");
-        
-        // Simple table data
-        const tableColumn = ["Name", "Age", "Gender", "Contact", "Email", "Registration Date"];
-        const tableRows = registrations.map(reg => [
-          reg.name,
-          reg.age,
-          reg.gender,
-          reg.contactNumber,
-          reg.email,
-          new Date(reg.createdAt).toLocaleDateString()
-        ]);
-        
-        console.log("Prepared table data", tableRows.length);
-        
-        // Generate the table with simpler options
-        doc.autoTable({
-          head: [tableColumn],
-          body: tableRows,
-          startY: 40,
-          theme: 'grid'
-        });
-        
-        console.log("Generated table");
-      } catch (innerError) {
-        console.error("Error in PDF generation steps:", innerError);
-        
-        // Fallback to extremely simple PDF if table generation failed
-        doc.setFont("helvetica");
-        doc.setFontSize(12);
-        doc.text("Gurmat Camp Registrations", 20, 20);
-        // doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
-        doc.text(`Total registrations: ${registrations.length}`, 20, 40);
-        
-        let yPos = 50;
-        registrations.forEach((reg, i) => {
-          doc.text(`${i+1}. ${reg.name} (${reg.age}, ${reg.gender}), Contact: ${reg.contactNumber}`, 20, yPos);
-          yPos += 10;
-          if (yPos > 280) { // Add a new page if we're near the bottom
-            doc.addPage();
-            yPos = 20;
-          }
-        });
-      }
+      console.log("Generated table");
       
-      // Save the PDF
-      doc.save("gurmat-camp-registrations.pdf");
-      console.log("PDF saved");
+    } catch (innerError) {
+      console.error("Error in PDF generation steps:", innerError);
+      
+      // Enhanced fallback with better formatting
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text("Gurmat Camp Registrations", 20, 20);
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
+      doc.text(`Total registrations: ${registrations.length}`, 20, 40);
+      
+      let yPos = 55;
+      const pageHeight = doc.internal.pageSize.height;
+      const margin = 20;
+      const lineHeight = 6;
+      
+      registrations.forEach((reg, i) => {
+        // Check if we need a new page
+        if (yPos > pageHeight - 40) {
+          doc.addPage();
+          yPos = 20;
+        }
+        
+        // Registration header
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.text(`${i + 1}. ${reg.name || 'N/A'}`, margin, yPos);
+        yPos += lineHeight;
+        
+        // Registration details
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        
+        const details = [
+          `Age: ${reg.age || 'N/A'}, Gender: ${reg.gender || 'N/A'}`,
+          `Contact: ${reg.contactNumber || 'N/A'}`,
+          `Email: ${reg.email || 'N/A'}`,
+          `Father: ${reg.fatherName || 'N/A'}`,
+          `Address: ${reg.address || 'N/A'}`,
+          `Registered: ${reg.createdAt ? new Date(reg.createdAt).toLocaleDateString() : 'N/A'}`
+        ];
+        
+        details.forEach(detail => {
+          // Handle long text by splitting if necessary
+          const maxWidth = doc.internal.pageSize.width - 2 * margin;
+          const textLines = doc.splitTextToSize(detail, maxWidth);
+          
+          textLines.forEach(line => {
+            if (yPos > pageHeight - 40) {
+              doc.addPage();
+              yPos = 20;
+            }
+            doc.text(line, margin + 5, yPos);
+            yPos += lineHeight;
+          });
+        });
+        
+        yPos += 3; // Extra space between registrations
+      });
+    }
+    
+    // Save the PDF
+    doc.save("gurmat-camp-registrations.pdf");
+    console.log("PDF saved");
+    
+    toast({
+      title: "Export Successful",
+      description: "PDF has been generated and downloaded.",
+    });
+    
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    
+    // Fallback to CSV export if PDF fails completely
+    try {
+      console.log("Falling back to CSV export");
+      const csvContent = "data:text/csv;charset=utf-8," + 
+        "Name,Age,Gender,Address,Father Name,Mother Name,Contact,Email,Registration Date\n" +
+        registrations.map(reg => {
+          return `"${reg.name || ''}","${reg.age || ''}","${reg.gender || ''}","${reg.address || ''}","${reg.fatherName || ''}","${reg.motherName || ''}","${reg.contactNumber || ''}","${reg.email || ''}","${reg.createdAt ? new Date(reg.createdAt).toLocaleDateString() : ''}"`;
+        }).join("\n");
+        
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "gurmat-camp-registrations.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       
       toast({
         title: "Export Successful",
-        description: "PDF has been generated and downloaded.",
+        description: "CSV has been generated and downloaded (PDF generation failed).",
       });
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      
-      // Fallback to CSV export if PDF fails completely
-      try {
-        console.log("Falling back to CSV export");
-        const csvContent = "data:text/csv;charset=utf-8," + 
-          "Name,Age,Gender,Address,Father Name,Mother Name,Contact,Email,Registration Date\n" +
-          registrations.map(reg => {
-            return `"${reg.name}","${reg.age}","${reg.gender}","${reg.address}","${reg.fatherName}","${reg.motherName}","${reg.contactNumber}","${reg.email}","${new Date(reg.createdAt).toLocaleDateString()}"`;
-          }).join("\n");
-          
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "gurmat-camp-registrations.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        toast({
-          title: "Export Successful",
-          description: "CSV has been generated and downloaded (PDF generation failed).",
-        });
-      } catch (csvError) {
-        console.error("CSV fallback also failed:", csvError);
-        toast({
-          title: "Export Failed",
-          description: `Failed to generate export: ${error instanceof Error ? error.message : "Unknown error"}`,
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setIsExporting(false);
+    } catch (csvError) {
+      console.error("CSV fallback also failed:", csvError);
+      toast({
+        title: "Export Failed",
+        description: `Failed to generate export: ${error instanceof Error ? error.message : "Unknown error"}`,
+        variant: "destructive",
+      });
     }
-  };
+  } finally {
+    setIsExporting(false);
+  }
+};
 
   if (isLoading) {
     return (
